@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "cc-super-agent: A Personal Agent Hub for Claude Code"
+title: "cc-super-agent: Super-agent for Claude Code"
 type: software
 authors:
   - family-names: Ma
@@ -13,4 +13,7 @@ keywords:
   - claude-code
   - agents
   - super-agent
+  - superagent
+  - multi-agent
+  - personal-agent
   - router-worker

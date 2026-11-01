@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-一个基于 [Claude Code](https://claude.com/claude-code) 的个人智能体中枢，只用 Claude Code 已有的功能搭建。
+**面向 [Claude Code](https://claude.com/claude-code) 的 Super-agent（超级智能体）。** 本项目是 DeepSeek Super-agent 设计的开源实现，采用 Router–Worker 多智能体架构，只用 Claude Code 已有的功能搭建。你可以把它当作自己的个人智能体：只与一个智能体交谈，由它替你调度多个 Claude Code 会话。
 
 ## 为什么做这个项目
 
@@ -75,7 +75,7 @@ Worker 使用你本人的 Claude Code 权限运行，本项目不会额外授予
 ```bibtex
 @software{cc_super_agent_2026,
   author = {Ma, Yingpeng},
-  title  = {cc-super-agent: A Personal Agent Hub for Claude Code},
+  title  = {cc-super-agent: Super-agent for Claude Code},
   year   = {2026},
   url    = {https://github.com/yingpengma/cc-super-agent}
 }

@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A personal agent hub for [Claude Code](https://claude.com/claude-code), built only from what Claude Code already offers.
+**Super-agent for [Claude Code](https://claude.com/claude-code).** An open-source implementation of DeepSeek's Super-agent (super agent) design, a Router–Worker multi-agent architecture, built only from what Claude Code already offers. Use it as your personal agent: talk to one agent, and let it run many Claude Code sessions for you.
 
 ## Why
 
@@ -75,7 +75,7 @@ If you use this project, please cite it:
 ```bibtex
 @software{cc_super_agent_2026,
   author = {Ma, Yingpeng},
-  title  = {cc-super-agent: A Personal Agent Hub for Claude Code},
+  title  = {cc-super-agent: Super-agent for Claude Code},
   year   = {2026},
   url    = {https://github.com/yingpengma/cc-super-agent}
 }

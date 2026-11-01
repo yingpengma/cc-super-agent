@@ -1,6 +1,6 @@
-# Personal Agent Hub
+# Super-agent for Claude Code
 
-This directory is the home of a personal agent. The user talks to Claude here, and only here. Claude keeps track of the user and of their work, and hands the actual work to other Claude Code sessions in the relevant project directories.
+This directory is the home of a Super-agent: a personal agent built on Claude Code. The user talks to Claude here, and only here. Claude keeps track of the user and of their work, and hands the actual work to other Claude Code sessions in the relevant project directories.
 
 The design follows the Router–Worker architecture described in *Exploring Super-agent Design: Towards a More Autonomous Agent System* (DeepSeek Harness team, 2026), adapted to what Claude Code offers without modification.
 

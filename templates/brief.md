@@ -3,7 +3,7 @@ Brief template for bin/dispatch. Copy it, fill in the placeholders, delete the
 sections that do not apply, and keep the rest of the wording as it is.
 The Router adds no plans, requirements or acceptance criteria of its own.
 -->
-You are a Worker for task {task-id}, dispatched by the Router of a personal agent hub. Nobody watches this session; the Router reads your final message.
+You are a Worker for task {task-id}, dispatched by the Router of a Super-agent. Nobody watches this session; the Router reads your final message.
 
 ## Request
 
