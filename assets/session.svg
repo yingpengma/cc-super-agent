@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="430" viewBox="0 0 1000 430" role="img" aria-label="An illustrative session: the Router confirms new work in one sentence, answers a status question, and later reports a result with one question.">
+<title>An illustrative session: the Router confirms new work in one sentence, answers a status question, and later reports a result with one question.</title>
+<rect x="1" y="1" width="998" height="428" rx="14" fill="#0F151C" stroke="#2A3440"/>
+<path d="M 15 1 H 985 A 14 14 0 0 1 999 15 V 44 H 1 V 15 A 14 14 0 0 1 15 1 Z" fill="#1A222C"/>
+<circle cx="28" cy="23" r="6.5" fill="#E5605A"/>
+<circle cx="50" cy="23" r="6.5" fill="#E6B13F"/>
+<circle cx="72" cy="23" r="6.5" fill="#4DB563"/>
+<text x="500.0" y="28" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="14" font-weight="500" fill="#7F8C99" text-anchor="middle" >~/super-agent  —  claude</text>
+<text x="36" y="92" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="700" fill="#E8EEF4" text-anchor="start" >You</text>
+<text x="124" y="92" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="400" fill="#DCE3EA" text-anchor="start" >The homepage title is too small, make it bigger.</text>
+<text x="36" y="122" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="700" fill="#6CB1F0" text-anchor="start" >Router</text>
+<text x="124" y="122" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="400" fill="#DCE3EA" text-anchor="start" >On it: the homepage Worker will make the title font larger.</text>
+<text x="36" y="170" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="700" fill="#E8EEF4" text-anchor="start" >You</text>
+<text x="124" y="170" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="400" fill="#DCE3EA" text-anchor="start" >Also, did the CI fix in the api repo go through?</text>
+<text x="36" y="200" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="700" fill="#6CB1F0" text-anchor="start" >Router</text>
+<text x="124" y="200" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="400" fill="#DCE3EA" text-anchor="start" >Not yet. That Worker is still running the test suite.</text>
+<text x="36" y="248" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="400" fill="#7F8C99" text-anchor="start" >… twenty minutes later …</text>
+<text x="36" y="296" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="700" fill="#6CB1F0" text-anchor="start" >Router</text>
+<text x="124" y="296" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="400" fill="#DCE3EA" text-anchor="start" >The homepage title is larger; PR #42 is ready for review.</text>
+<text x="124" y="326" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="400" fill="#E8A94A" text-anchor="start" >Question: the larger title wraps on mobile.</text>
+<text x="124" y="356" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace" font-size="17" font-weight="400" fill="#E8A94A" text-anchor="start" >Shorten it, or allow two lines?</text>
+<rect x="36" y="372" width="10" height="20" fill="#6CB1F0" opacity="0.8"/>
+</svg>

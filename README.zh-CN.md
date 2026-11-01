@@ -1,13 +1,12 @@
 <div align="center">
 
-# cc-super-agent
-
-**面向 Claude Code 的 Super-agent（超级智能体）**
-
-你只和一个智能体对话，其余的 Claude Code 会话都由它替你调度。
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
+  <img alt="cc-super-agent：面向 Claude Code 的 Super-agent。你只和一个智能体对话，其余的 Claude Code 会话都由它替你调度。" src="assets/hero-light.svg">
+</picture>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-d97757)](https://claude.com/claude-code)
+[![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-2f7fcf)](https://claude.com/claude-code)
 [![Architecture: Router–Worker](https://img.shields.io/badge/architecture-Router%E2%80%93Worker-6f42c1)](#工作原理)
 [![Status: experimental](https://img.shields.io/badge/status-experimental-orange)](#路线图)
 
@@ -47,17 +46,10 @@ cc-super-agent 是 DeepSeek 于 2026 年 10 月发布的 **Super-agent** 设计�
 
 ## 工作原理
 
-```mermaid
-flowchart LR
-    U([你]) <-->|一个对话| R["Router<br/>本目录的会话"]
-    R -->|"bin/dispatch<br/>原话转达"| W1["Worker<br/>项目 A"]
-    R -->|bin/dispatch| W2["Worker<br/>项目 B"]
-    R -->|SendMessage| W3["你已打开的会话<br/>项目 C"]
-    W1 & W2 & W3 -->|"状态 · 结果 · 一个问题"| R
-    R <--> M[("记录<br/>INDEX.md · tasks/ · projects/")]
-    D["Watchdog<br/>cron，每 15 分钟"] -.->|观察| W1 & W2 & R
-    D -.->|"⚠ 发现的问题"| M
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/architecture-dark.svg">
+  <img alt="架构图" src="assets/architecture-light.svg">
+</picture>
 
 1. **你说一句话。** Router 判断它是新工作、对已有工作的补充，还是两者都不是。
 2. **Router 先记录，后行动。** 它先写好任务文件和 `INDEX.md` 中对应的一行，用一句话确认自己的理解，然后再派发。
@@ -71,6 +63,11 @@ Router 遵守的规则全部写在 [AGENTS.md](AGENTS.md)（英文）中。这�
 
 以下是一段示意对话：
 
+<p align="center"><img alt="与 Router 的一段示意对话" src="assets/session.svg" width="820"></p>
+
+<details>
+<summary>中文文字版</summary>
+
 ```text
 你：     首页标题太小了，调大一点。
 Router： 收到：首页的 Worker 会把标题字号调大。
@@ -83,6 +80,8 @@ Router： 还没有，那个 Worker 还在跑测试。
 Router： 首页标题已经调大，PR #42 可以评审了。
          问题：标题调大后在手机上会折行。是缩短标题，还是允许显示两行？
 ```
+
+</details>
 
 ## 快速开始
 
@@ -120,6 +119,17 @@ tmux -L ccsa attach -t ccsa-router     # 与它对话；按 Ctrl-b 再按 d 即�
 ## 设计来源
 
 本项目的架构依据 DeepSeek Harness 团队的文章[《Super-agent 设计探索：迈向更自主的 Agent 系统》](https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg)，以及他们的参考实现 [deepseek-ai/dsh-superagent-prototype](https://github.com/deepseek-ai/dsh-superagent-prototype)。在他们的实验中，处理并发工作时，双层 Router–Worker 系统比"单会话 + subagent 工具"完成得更快、更稳定（p95 分别为 15.7 分钟和 29.5 分钟），原因是单会话往往倾向于亲自干活，结果不断被新消息打断。
+
+本项目的设计所依据的实验结果：
+
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/benchmark-dark.svg">
+  <img alt="任务完成时间的点图：Super-agent 中位数 12.4、p95 15.7 分钟；去掉直通 12.6、15.5；单会话加 subagent 工具、优先委派提示 13.8、29.0；中性提示 20.4、29.5。" src="assets/benchmark-light.svg" width="820">
+</picture>
+</p>
+
+cc-super-agent 没有直通机制，因此最接近的是第二行：完成时间基本相同，只是 Router 要多做一些判断。
 
 他们的各个模块在 Claude Code 中的对应关系：
 

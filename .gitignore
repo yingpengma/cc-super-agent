@@ -8,6 +8,7 @@
 !/watchdog/
 !/router/
 !/templates/
+!/assets/
 !/LICENSE
 !/README.zh-CN.md
 !/CITATION.cff

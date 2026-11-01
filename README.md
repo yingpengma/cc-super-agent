@@ -1,13 +1,12 @@
 <div align="center">
 
-# cc-super-agent
-
-**Super-agent for Claude Code**
-
-Talk to one agent. It runs every other Claude Code session for you.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
+  <img alt="cc-super-agent: Super-agent for Claude Code. Talk to one agent; it runs every other Claude Code session for you." src="assets/hero-light.svg">
+</picture>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-d97757)](https://claude.com/claude-code)
+[![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-2f7fcf)](https://claude.com/claude-code)
 [![Architecture: Router–Worker](https://img.shields.io/badge/architecture-Router%E2%80%93Worker-6f42c1)](#how-it-works)
 [![Status: experimental](https://img.shields.io/badge/status-experimental-orange)](#roadmap)
 
@@ -47,17 +46,10 @@ You keep **one** conversation. Behind it, a Router hands each piece of work to i
 
 ## How it works
 
-```mermaid
-flowchart LR
-    U([You]) <-->|one conversation| R["Router<br/>this directory's session"]
-    R -->|"bin/dispatch<br/>your words, verbatim"| W1["Worker<br/>project A"]
-    R -->|bin/dispatch| W2["Worker<br/>project B"]
-    R -->|SendMessage| W3["Your open session<br/>project C"]
-    W1 & W2 & W3 -->|"Status · Result · one Question"| R
-    R <--> M[("Records<br/>INDEX.md · tasks/ · projects/")]
-    D["Watchdog<br/>cron, every 15 min"] -.->|observes| W1 & W2 & R
-    D -.->|"⚠ findings"| M
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/architecture-dark.svg">
+  <img alt="Architecture diagram" src="assets/architecture-light.svg">
+</picture>
 
 1. **You say something.** The Router decides whether it is new work, a follow-up to existing work, or neither.
 2. **The Router records first, then acts.** It writes the task file and its line in `INDEX.md`, confirms in one sentence what it understood, then dispatches.
@@ -71,6 +63,11 @@ The rules the Router follows are in [AGENTS.md](AGENTS.md). They are the whole s
 
 An illustrative exchange:
 
+<p align="center"><img alt="An illustrative session with the Router" src="assets/session.svg" width="820"></p>
+
+<details>
+<summary>Text version</summary>
+
 ```text
 You:    The homepage title is too small, make it bigger.
 Router: On it: the homepage Worker will make the title font larger.
@@ -83,6 +80,8 @@ Router: Not yet. That Worker is still running the test suite.
 Router: The homepage title is larger; PR #42 is ready for review.
         Question: the larger title wraps on mobile. Shorten it, or allow two lines?
 ```
+
+</details>
 
 ## Quick start
 
@@ -120,6 +119,17 @@ Created at run time and never committed: `INDEX.md`, `tasks/`, `projects/`, `.ru
 ## Design
 
 The architecture follows [*Exploring Super-agent Design: Towards a More Autonomous Agent System*](https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg) by the DeepSeek Harness team, and their reference implementation [deepseek-ai/dsh-superagent-prototype](https://github.com/deepseek-ai/dsh-superagent-prototype). In their experiments, a two-layer Router–Worker system finished concurrent work faster and more predictably than a single session with a subagent tool (p95 of 15.7 versus 29.5 minutes), because a single session tends to do the work itself and keeps getting interrupted.
+
+Their experiment, which this project's design rests on:
+
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/benchmark-dark.svg">
+  <img alt="Dot plot of task completion time: Super-agent p50 12.4 and p95 15.7 minutes; without pass-through 12.6 and 15.5; single session with subagent tool, delegate-first prompt, 13.8 and 29.0; neutral prompt, 20.4 and 29.5." src="assets/benchmark-light.svg" width="820">
+</picture>
+</p>
+
+cc-super-agent has no pass-through, so the second row is the one closest to it: the same completion times, with more Router decisions.
 
 How their modules map onto Claude Code:
 

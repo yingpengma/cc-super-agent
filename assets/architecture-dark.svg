@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="660" viewBox="0 0 1280 660" role="img" aria-label="Architecture: you talk to the Router; the Router dispatches your words to Worker sessions in project directories and keeps records; Workers report back; a cron-driven Watchdog observes Workers and the Router and writes findings to the records.">
+<title>Architecture: you talk to the Router; the Router dispatches your words to Worker sessions in project directories and keeps records; Workers report back; a cron-driven Watchdog observes Workers and the Router and writes findings to the records.</title>
+<defs><marker id="head-5AA2E8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#5AA2E8"/></marker><marker id="head-8796A6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#8796A6"/></marker><marker id="head-E2A23C" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#E2A23C"/></marker></defs>
+<rect x="1" y="1" width="1278" height="658" rx="18" fill="#121A24" stroke="#26313D"/>
+<rect x="60" y="230" width="140" height="80" rx="14" fill="#18222E" stroke="#26313D" stroke-width="1.5"/>
+<text x="130.0" y="276.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="650" fill="#E8EEF4" text-anchor="middle" >You</text>
+<rect x="300" y="170" width="330" height="200" rx="18" fill="none" stroke="#3A4859" stroke-dasharray="4 6"/>
+<text x="316" y="196" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#8796A6" text-anchor="start" >tmux under systemd: always on</text>
+<rect x="330" y="214" width="270" height="112" rx="14" fill="#18222E" stroke="#5AA2E8" stroke-width="2"/>
+<text x="465.0" y="266.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="650" fill="#E8EEF4" text-anchor="middle" >Router</text>
+<text x="465.0" y="290.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#8796A6" text-anchor="middle" >Claude Code session in the hub</text>
+<text x="465.0" y="310.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#8796A6" text-anchor="middle" >routes, records, never does the work</text>
+<path d="M 200 258 L 326 258" fill="none" stroke="#5AA2E8" stroke-width="2.5" stroke-linecap="round" marker-end="url(#head-5AA2E8)"/>
+<path d="M 326 286 L 204 286" fill="none" stroke="#5AA2E8" stroke-width="2.5" stroke-linecap="round" marker-end="url(#head-5AA2E8)"/>
+<text x="263" y="246" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#8796A6" text-anchor="middle" >talk</text>
+<rect x="300" y="430" width="210" height="92" rx="14" fill="#18222E" stroke="#26313D" stroke-width="1.5"/>
+<text x="405.0" y="472.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="650" fill="#E8EEF4" text-anchor="middle" >Records</text>
+<text x="405.0" y="496.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#8796A6" text-anchor="middle" >INDEX.md, tasks/, projects/</text>
+<rect x="526" y="430" width="150" height="92" rx="14" fill="#18222E" stroke="#26313D" stroke-width="1.5"/>
+<text x="601.0" y="472.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="650" fill="#E8EEF4" text-anchor="middle" >Memory</text>
+<text x="601.0" y="496.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#8796A6" text-anchor="middle" >your preferences</text>
+<line x1="420" y1="330" x2="405" y2="426" stroke="#3A4859" stroke-width="2"/>
+<line x1="540" y1="330" x2="590" y2="426" stroke="#3A4859" stroke-width="2"/>
+<rect x="860" y="70" width="340" height="96" rx="14" fill="#18222E" stroke="#26313D" stroke-width="1.5"/>
+<text x="1030.0" y="114.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="650" fill="#E8EEF4" text-anchor="middle" >Worker: project A</text>
+<text x="1030.0" y="138.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#8796A6" text-anchor="middle" >bin/dispatch, claude -p</text>
+<rect x="860" y="230" width="340" height="96" rx="14" fill="#18222E" stroke="#26313D" stroke-width="1.5"/>
+<text x="1030.0" y="274.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="650" fill="#E8EEF4" text-anchor="middle" >Worker: project B</text>
+<text x="1030.0" y="298.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#8796A6" text-anchor="middle" >bin/dispatch, claude -p</text>
+<rect x="860" y="390" width="340" height="96" rx="14" fill="#18222E" stroke="#26313D" stroke-width="1.5"/>
+<text x="1030.0" y="434.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="650" fill="#E8EEF4" text-anchor="middle" >Your open session: project C</text>
+<text x="1030.0" y="458.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#8796A6" text-anchor="middle" >SendMessage</text>
+<path d="M 606 270 C 720 270, 740 118, 852 118" fill="none" stroke="#5AA2E8" stroke-width="2.5" stroke-linecap="round" marker-end="url(#head-5AA2E8)"/>
+<path d="M 606 270 C 720 270, 740 278, 852 278" fill="none" stroke="#5AA2E8" stroke-width="2.5" stroke-linecap="round" marker-end="url(#head-5AA2E8)"/>
+<path d="M 606 270 C 720 270, 740 438, 852 438" fill="none" stroke="#5AA2E8" stroke-width="2.5" stroke-linecap="round" marker-end="url(#head-5AA2E8)"/>
+<path d="M 640 270 L 608 270" fill="none" stroke="#5AA2E8" stroke-width="2.5" stroke-linecap="round" marker-end="url(#head-5AA2E8)"/>
+<text x="700" y="508" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#5AA2E8" text-anchor="start" >out: your words, verbatim</text>
+<text x="700" y="526" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#8796A6" text-anchor="start" >back: Status, Result, one Question</text>
+<rect x="860" y="530" width="340" height="100" rx="14" fill="#18222E" stroke="#E2A23C" stroke-width="2" stroke-dasharray="6 5"/>
+<text x="1030.0" y="576.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="650" fill="#E8EEF4" text-anchor="middle" >Watchdog</text>
+<text x="1030.0" y="600.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#8796A6" text-anchor="middle" >cron, every 15 minutes,</text>
+<text x="1030.0" y="620.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#8796A6" text-anchor="middle" >watches Workers and the Router</text>
+<path d="M 856 590 C 640 600, 450 590, 420 528" fill="none" stroke="#E2A23C" stroke-width="2" stroke-dasharray="7 6" stroke-linecap="round" marker-end="url(#head-E2A23C)"/>
+<text x="640" y="616" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#E2A23C" text-anchor="middle" >⚠ findings</text>
+</svg>
