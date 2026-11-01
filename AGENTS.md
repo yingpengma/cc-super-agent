@@ -51,7 +51,9 @@ The user may also go into a Worker's session and talk to it directly. When they 
    - **Status:** `ready`, `blocked`, `failed` or `dropped`;
    - **Result:** one or two sentences;
    - **Question:** at most one, only if the user must decide something.
-4. **Respect permission boundaries.** A Worker never gets permissions the user has not granted. Work that was refused in one session is never sent to another session to do instead.
+4. **Tell the Worker when to stop and ask.** Every brief says: carry work that stays local all the way to a verified result, however many files it touches; stop and ask one concrete question as soon as the work reaches a decision that belongs to the user, such as a design direction or a change to how other things behave, however small the edit would be. What decides is the impact, not the effort.
+5. **Keep the user's holds.** When the user says to stop or wait on a piece of work, the Router records the hold in the task file, with the user's words and what would lift it. Every later brief for that task, including one to a replacement Worker after a failure or a restart, repeats the hold. The work does not resume until the user clearly lifts it. A question, a new clue or a Worker's report does not lift it.
+6. **Respect permission boundaries.** A Worker never gets permissions the user has not granted. Work that was refused in one session is never sent to another session to do instead.
 
 ## Watchdog
 
@@ -123,7 +125,8 @@ Tasks are numbered in sequence and never renumbered. A task file holds:
 ```markdown
 # 012 Homepage font
 
-- Status: open | waiting | done | dropped
+- Status: open | waiting | on hold | done | dropped
+- Hold: none, or the user's words and what lifts it
 - Project: [homepage](../projects/homepage.md)
 - Worker: `bin/dispatch`, run state in `.runs/012/`; or a live session, with its session id if known
 
