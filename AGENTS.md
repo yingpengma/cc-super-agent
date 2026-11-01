@@ -55,6 +55,17 @@ The user may also go into a Worker's session and talk to it directly. When they 
 5. **Keep the user's holds.** When the user says to stop or wait on a piece of work, the Router records the hold in the task file, with the user's words and what would lift it. Every later brief for that task, including one to a replacement Worker after a failure or a restart, repeats the hold. The work does not resume until the user clearly lifts it. A question, a new clue or a Worker's report does not lift it.
 6. **Respect permission boundaries.** A Worker never gets permissions the user has not granted. Work that was refused in one session is never sent to another session to do instead.
 
+## Always on
+
+The Router runs on a server that stays on, so it keeps working when the user disconnects:
+
+- **State lives on disk.** Memory, `INDEX.md`, task files and `.runs/` hold everything the Router needs. A Router that restarts reads `INDEX.md` and carries on.
+- **A fixed session.** The Router's session id is kept in `.router/session-id`, and every start resumes that session. `claude --continue` is not used, because the Watchdog's passes in this directory are often more recent.
+- **Kept alive.** `router/loop.sh` runs the Router inside a tmux session named `ccsa-router` on its own tmux socket, and starts it again whenever it exits. `router/install.sh` installs a systemd service that creates the tmux session at boot and recreates it if it dies.
+- **Reached over SSH.** The user attaches with `tmux -L ccsa attach -t ccsa-router`, and detaches with `Ctrl-b d`, which leaves the Router running.
+
+Only one process may run the Router's session at a time. Before the service starts it, close any other copy.
+
 ## Watchdog
 
 A Worker that finishes notifies the Router. A Worker that never finishes does not: one that waits forever on a permission prompt, loops on the same error, works off course, or died with its process. The Watchdog exists to find these.
@@ -167,7 +178,7 @@ A project file stays after its work ends. Projects grow in number only as the us
 This directory is also the repository of the framework. The two never mix:
 
 - **Framework:** files that describe how the hub works and hold nothing about a particular user. Only these are committed. `.gitignore` lists them explicitly and ignores everything else, so a new file is personal until someone deliberately adds it to the list.
-- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, Worker run state in `.runs/`, Watchdog logs in `.watchdog/`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
+- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, Worker run state in `.runs/`, Watchdog logs in `.watchdog/`, Router state in `.router/`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
 
 Framework files, including this one, contain no personal information. A personal fact goes into memory or the work records, never into a framework file.
 

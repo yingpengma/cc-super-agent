@@ -35,7 +35,7 @@ For each flagged task:
 1. Read the task's log. If its last Watchdog entry already reports the same finding, and nothing has changed since, do nothing. Do not repeat an alert.
 2. Otherwise, append one line to the task file's log: `- <date>: Watchdog: <finding>: <evidence>.`
 3. In `INDEX.md`, append ` · ⚠ <finding>` to the task's line, replacing any earlier Watchdog mark on that line.
-4. Use ListAgents to look for the Router: a live session, other than yourself, whose name starts with this hub directory's name. If it is there, send it one message with SendMessage, starting with `Watchdog:`, naming the task, the finding and the evidence in at most two sentences.
+4. Use ListAgents to look for the Router: the live session named `ccsa-router`, or, if there is none, a live session other than yourself whose name starts with this hub directory's name. If it is there, send it one message with SendMessage, starting with `Watchdog:`, naming the task, the finding and the evidence in at most two sentences.
 
 When a task you flagged earlier has recovered, remove its ⚠ mark from `INDEX.md` and log the recovery in one line.
 

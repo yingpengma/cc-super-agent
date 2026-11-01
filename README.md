@@ -22,6 +22,7 @@ The full rules the agent follows are in [AGENTS.md](AGENTS.md).
 1. Clone this repository into a directory of your own.
 2. Start Claude Code in it. `CLAUDE.md` loads `AGENTS.md`.
 3. From then on, talk to Claude only there.
+4. Optional: on a server, run `watchdog/install.sh` to start the Watchdog, and `router/install.sh` to keep the Router running. Attach with `tmux -L ccsa attach -t ccsa-router`.
 
 Your personal data stays local: `.gitignore` tracks only the framework files and ignores everything else.
 
