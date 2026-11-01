@@ -1,4 +1,6 @@
 # Whitelist: only framework files are tracked. Everything else is personal data and stays local.
 /*
 !/.gitignore
+!/AGENTS.md
 !/CLAUDE.md
+!/README.md
