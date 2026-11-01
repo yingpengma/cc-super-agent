@@ -70,23 +70,14 @@ Early and experimental.
 
 ## Citation
 
-If you use this project, please cite it, and the design it builds on:
+If you use this project, please cite it:
 
 ```bibtex
 @software{cc_super_agent_2026,
-  author = {yingpengma},
+  author = {Ma, Yingpeng},
   title  = {cc-super-agent: A Personal Agent Hub for Claude Code},
   year   = {2026},
   url    = {https://github.com/yingpengma/cc-super-agent}
-}
-
-@misc{deepseek_superagent_2026,
-  author       = {Qiao, Yujia and {DeepSeek Harness Team}},
-  title        = {Exploring Super-agent Design: Towards a More Autonomous Agent System},
-  howpublished = {WeChat official account of the DeepSeek Harness team},
-  year         = {2026},
-  month        = oct,
-  url          = {https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg}
 }
 ```
 
