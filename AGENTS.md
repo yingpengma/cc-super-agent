@@ -32,8 +32,8 @@ A Worker is a Claude Code session working in one project's directory on one piec
 
 A Worker is reached in one of two ways:
 
-- **A new Worker:** the Router starts `claude -p "<brief>"` from the project directory as a background command. The result returns to the Router when the command ends.
-- **A live session:** if the user already has a session open in that project, the Router sends it a message with `SendMessage` and asks to be notified when it is idle.
+- **A dispatched Worker:** the Router writes the brief to a file and runs `bin/dispatch <task-id> <project-dir> <brief-file>` as a background command. The first call for a task starts a new session with a fixed session id; later calls for the same task resume that session, so follow-ups reach the Worker that already holds the context. The result returns to the Router when the command ends. Run state is kept in `.runs/<task-id>/`.
+- **A live session:** if the user already has a session open in that project, the Router sends it a message with `SendMessage` and asks to be notified when it is idle. If the session's id is known, the Router records it in the task file so the Watchdog can observe it.
 
 The user may also go into a Worker's session and talk to it directly. When they do, the Router learns what happened from the Worker's next report, or from the user.
 
@@ -46,6 +46,19 @@ The user may also go into a Worker's session and talk to it directly. When they 
    - **Result:** one or two sentences;
    - **Question:** at most one, only if the user must decide something.
 4. **Respect permission boundaries.** A Worker never gets permissions the user has not granted. Work that was refused in one session is never sent to another session to do instead.
+
+## Watchdog
+
+A Worker that finishes notifies the Router. A Worker that never finishes does not: one that waits forever on a permission prompt, loops on the same error, works off course, or died with its process. The Watchdog exists to find these.
+
+It follows the design's external control loop:
+
+- **Independent of the Router.** It is a separate `claude -p` process started by the system's cron, not by the Router. It keeps running when the Router session is closed, and can notice when the Router itself has stopped relaying results.
+- **Driven by a timer.** `watchdog/install.sh` installs a cron entry that runs `watchdog/run.sh` every 15 minutes. A pass is skipped without calling the model when no task is open and no Worker is running. Passes never overlap.
+- **Observes, diagnoses, reports.** Each pass reads the work records, the run state in `.runs/` and each Worker's session transcript, and judges whether the work is still progressing. Its instructions are in `watchdog/prompt.md`.
+- **Never intervenes.** It does not stop, restart, message or redirect a Worker. It records a finding in the task's log, marks the task's line in `INDEX.md` with ⚠, and sends the Router one short message if the Router is running. It does not repeat an alert that has not changed.
+
+The Router decides what to do with a finding: resume the Worker with `bin/dispatch`, tell the user, or wait. The Router reads ⚠ marks in `INDEX.md` at the start of every turn, so a finding reaches it even if it was offline when the Watchdog ran.
 
 ## Talking to the user
 
@@ -106,7 +119,7 @@ Tasks are numbered in sequence and never renumbered. A task file holds:
 
 - Status: open | waiting | done | dropped
 - Project: [homepage](../projects/homepage.md)
-- Worker: how it was reached, e.g. `claude -p` in /path/to/homepage
+- Worker: `bin/dispatch`, run state in `.runs/012/`; or a live session, with its session id if known
 
 ## Request
 > The user's original words, verbatim, with the date.
@@ -145,7 +158,7 @@ A project file stays after its work ends. Projects grow in number only as the us
 This directory is also the repository of the framework. The two never mix:
 
 - **Framework:** files that describe how the hub works and hold nothing about a particular user. Only these are committed. `.gitignore` lists them explicitly and ignores everything else, so a new file is personal until someone deliberately adds it to the list.
-- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
+- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, Worker run state in `.runs/`, Watchdog logs in `.watchdog/`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
 
 Framework files, including this one, contain no personal information. A personal fact goes into memory or the work records, never into a framework file.
 

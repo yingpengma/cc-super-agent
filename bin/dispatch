@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Start or continue the Worker of one task.
+#
+#   bin/dispatch <task-id> <project-dir> <brief-file> [-- extra claude args]
+#
+# The first call for a task starts a new Claude Code session in <project-dir>
+# with a fixed session id. Later calls for the same task resume that session,
+# so a follow-up reaches the Worker that already holds the task's context.
+#
+# Run state is kept in .runs/<task-id>/ (personal data, never committed):
+#   session-id, project, pid, status (running | exited <code>), started, ended,
+#   result.json (the last run's final output), stderr.log, briefs.log
+#
+# Permissions: the Worker runs with the user's own Claude Code settings for that
+# project. Pass extra flags such as --permission-mode only when the user has
+# granted them.
+set -euo pipefail
+
+if [ $# -lt 3 ]; then
+  echo "usage: $0 <task-id> <project-dir> <brief-file> [-- extra claude args]" >&2
+  exit 2
+fi
+
+hub="$(cd "$(dirname "$0")/.." && pwd)"
+task="$1"; project="$(cd "$2" && pwd)"; brief="$(cd "$(dirname "$3")" && pwd)/$(basename "$3")"
+shift 3
+[ "${1:-}" = "--" ] && shift
+run="$hub/.runs/$task"
+mkdir -p "$run"
+
+if [ -f "$run/status" ] && grep -q '^running' "$run/status" && kill -0 "$(cat "$run/pid" 2>/dev/null)" 2>/dev/null; then
+  echo "task $task: a Worker run is still active (pid $(cat "$run/pid"))" >&2
+  exit 1
+fi
+
+if [ -f "$run/session-id" ]; then
+  if [ "$(cat "$run/project")" != "$project" ]; then
+    echo "task $task belongs to $(cat "$run/project"), not $project" >&2
+    exit 1
+  fi
+  session_args=(--resume "$(cat "$run/session-id")")
+else
+  uuidgen > "$run/session-id"
+  echo "$project" > "$run/project"
+  session_args=(--session-id "$(cat "$run/session-id")")
+fi
+
+{ echo "=== $(date -Is)"; cat "$brief"; echo; } >> "$run/briefs.log"
+echo "running" > "$run/status"
+date -Is > "$run/started"
+rm -f "$run/ended"
+echo $$ > "$run/pid"
+
+cd "$project"
+set +e
+claude -p "$(cat "$brief")" "${session_args[@]}" --output-format json "$@" \
+  > "$run/result.json" 2> "$run/stderr.log"
+code=$?
+set -e
+
+echo "exited $code" > "$run/status"
+date -Is > "$run/ended"
+echo "task $task: Worker exited with code $code; session $(cat "$run/session-id"); result in $run/result.json"
+exit "$code"
