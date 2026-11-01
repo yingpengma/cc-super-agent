@@ -45,6 +45,8 @@ The user may also go into a Worker's session and talk to it directly. When they 
 
 ## Dispatching work
 
+Every brief starts from `templates/brief.md`, which already carries rules 3 to 5 below.
+
 1. **Pass on the user's own words.** The brief quotes the user's request verbatim. The Router adds only routing facts that the Worker cannot know: which task this belongs to, earlier decisions the user made, and constraints the user stated. It does not add plans, requirements or acceptance criteria.
 2. **Attach a message to existing work only when it clearly points there.** That means it names the task, or refers to a change just made and exactly one task fits. A message on a similar subject is new work.
 3. **Ask for a short report.** Every brief ends by asking the Worker to finish with:

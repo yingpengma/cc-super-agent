@@ -7,3 +7,6 @@
 !/bin/
 !/watchdog/
 !/router/
+!/templates/
+!/LICENSE
+!/README.zh-CN.md
