@@ -1,56 +1,161 @@
+<div align="center">
+
 # cc-super-agent
+
+**Super-agent for Claude Code**
+
+Talk to one agent. It runs every other Claude Code session for you.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-d97757)](https://claude.com/claude-code)
+[![Architecture: Router–Worker](https://img.shields.io/badge/architecture-Router%E2%80%93Worker-6f42c1)](#how-it-works)
+[![Status: experimental](https://img.shields.io/badge/status-experimental-orange)](#roadmap)
 
 English | [简体中文](README.zh-CN.md)
 
-**Super-agent for [Claude Code](https://claude.com/claude-code).** An open-source implementation of DeepSeek's Super-agent (super agent) design, a Router–Worker multi-agent architecture, built only from what Claude Code already offers. Use it as your personal agent: talk to one agent, and let it run many Claude Code sessions for you.
+</div>
 
-## Why
+---
 
-A model can now carry a single task to completion with little supervision. The limit has moved to the person: one can follow only a few sessions at once. This project lets you talk to one agent, in one place, while the sessions doing the work are managed for you.
+You have five projects and five Claude Code sessions open. You switch tabs, scroll back to remember where each one was, answer a permission prompt in one, forget another for an hour. **The model is not the bottleneck any more. Your attention is.**
 
-It adapts the Router–Worker architecture from [*Exploring Super-agent Design: Towards a More Autonomous Agent System*](https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg) by the DeepSeek Harness team (2026), whose reference implementation is [deepseek-ai/dsh-superagent-prototype](https://github.com/deepseek-ai/dsh-superagent-prototype), to Claude Code, with no changes to Claude Code itself. This project is independent and not affiliated with DeepSeek or Anthropic.
+cc-super-agent is an open-source implementation of the **Super-agent** design that DeepSeek published in October 2026, built for **Claude Code** from nothing but what Claude Code already ships with: no fork, no patch, no extra service.
+
+You keep **one** conversation. Behind it, a Router hands each piece of work to its own Worker session in the right project, keeps track of everything in plain Markdown, and only speaks up when there is a result you can use or a decision only you can make.
+
+## Before and after
+
+| | Juggling sessions yourself | With cc-super-agent |
+| --- | --- | --- |
+| Where you talk | One tab per project | One conversation, always the same |
+| Who remembers what each session was doing | You | The Router, in Markdown files you can read |
+| Starting work in another project | Open a terminal, `cd`, explain the context again | Say it in one sentence |
+| A session stuck on a permission prompt or a loop | You find out when you happen to look | The Watchdog flags it within 15 minutes |
+| Closing your laptop | Everything stops | The Router keeps running on your server |
+| What reaches you | Every step of every session | A result, or one question |
+
+## Features
+
+- 🧭 **One Router, many Workers.** The Router never does the work itself, so it is always free to take your next message. Each task gets its own Worker session in its own project, loading that project's `CLAUDE.md` and memory.
+- 🗣️ **Your words, not a summary.** Workers receive your request verbatim and read the original material themselves. The Router adds no plans of its own.
+- 🔁 **Follow-ups reach the same Worker.** Every task keeps a fixed session id, so "also make the button blue" resumes the Worker that already has the context. A follow-up sent while it is busy is queued, not lost.
+- 🐕 **A Watchdog outside the system.** A separate process, driven by cron, notices Workers that died, went silent, loop, drift off course, or wait on a prompt nobody answers. It watches the Router too.
+- ♾️ **Always on.** On a server, the Router lives in tmux under systemd, resumes its own session after any restart, and picks up from its records.
+- 🧠 **A memory you can read.** Your preferences go into Claude Code's memory. Your work goes into a three-layer Markdown wiki: an index, one file per task, one per project. The Router follows links one hop at a time instead of loading everything.
+- 🛑 **You stay in control.** "Hold this" survives Worker restarts until you lift it. `bin/pause` stops everything at once. Workers never get permissions you did not grant.
+- 🔒 **Private by default.** The repository tracks a whitelist of framework files. Your tasks, projects, logs and memory never leave your machine.
 
 ## How it works
 
-- **One Router.** You talk only to the Claude Code session in this directory. It keeps track of you and of your work, decides where each request belongs, and does not do the work itself.
-- **Many Workers.** Each piece of work goes to a Claude Code session in the relevant project directory. The Router passes on your own words, and the Worker reports back a short result or a single question.
-- **Two kinds of records.** Your preferences live in Claude Code's memory. Your work lives in layered Markdown files in this directory: an index of open work, one file per task and one per project.
-- **A Watchdog.** A separate process checks on a timer for work that has stopped without anyone being told, and reports it to the Router.
-- **Always on.** On a server, the Router runs in tmux under systemd and comes back by itself if it exits.
-- **Your attention comes first.** The Router speaks only when there is a result you can use or a decision you must make, and asks one question at a time.
+```mermaid
+flowchart LR
+    U([You]) <-->|one conversation| R["Router<br/>this directory's session"]
+    R -->|"bin/dispatch<br/>your words, verbatim"| W1["Worker<br/>project A"]
+    R -->|bin/dispatch| W2["Worker<br/>project B"]
+    R -->|SendMessage| W3["Your open session<br/>project C"]
+    W1 & W2 & W3 -->|"Status · Result · one Question"| R
+    R <--> M[("Records<br/>INDEX.md · tasks/ · projects/")]
+    D["Watchdog<br/>cron, every 15 min"] -.->|observes| W1 & W2 & R
+    D -.->|"⚠ findings"| M
+```
 
-The full rules the agent follows are in [AGENTS.md](AGENTS.md).
+1. **You say something.** The Router decides whether it is new work, a follow-up to existing work, or neither.
+2. **The Router records first, then acts.** It writes the task file and its line in `INDEX.md`, confirms in one sentence what it understood, then dispatches.
+3. **A Worker does the work** in the project's own directory, carries local changes through to a verified result, and stops to ask the moment a decision belongs to you.
+4. **The Worker reports** `ready`, `blocked`, `failed` or `dropped`, with a one-line result and at most one question. The Router writes you a fresh, short message. It never forwards the raw report.
+5. **The Watchdog** checks every 15 minutes for anything that stopped without telling anyone.
 
-## Requirements
+The rules the Router follows are in [AGENTS.md](AGENTS.md). They are the whole system: read them to know exactly what the agent will and will not do.
 
-- Linux with bash, and `flock` and `uuidgen` from util-linux.
-- The Claude Code CLI, signed in. Tested with version 2.1.316.
-- For the Watchdog: cron.
-- For an always-on Router: tmux, systemd, and root access to install the service.
+## What a session looks like
 
-## Layout
+An illustrative exchange:
+
+```text
+You:    The homepage title is too small, make it bigger.
+Router: On it: the homepage Worker will make the title font larger.
+
+You:    Also, did the CI fix in the api repo go through?
+Router: Not yet. That Worker is still running the test suite.
+
+        … twenty minutes later …
+
+Router: The homepage title is larger; PR #42 is ready for review.
+        Question: the larger title wraps on mobile. Shorten it, or allow two lines?
+```
+
+## Quick start
+
+**Requirements:** Linux with bash, `flock` and `uuidgen` (util-linux), and the Claude Code CLI, signed in (tested with 2.1.316). The Watchdog needs cron. An always-on Router needs tmux, systemd and root.
+
+```sh
+git clone https://github.com/yingpengma/cc-super-agent.git ~/super-agent
+cd ~/super-agent
+claude            # this is your Router from now on
+```
+
+That is all you need to start. Two optional steps make it autonomous:
+
+```sh
+watchdog/install.sh                    # a Watchdog pass every 15 minutes
+sudo router/install.sh                 # keep the Router running under systemd
+tmux -L ccsa attach -t ccsa-router     # talk to it; detach with Ctrl-b d
+```
+
+Close any other Claude Code session in this directory before installing the Router service.
+
+## Repository layout
 
 | Path | Contents |
 | --- | --- |
-| `AGENTS.md` | The rules the Router follows. `CLAUDE.md` loads it |
-| `templates/brief.md` | The template for every brief sent to a Worker |
-| `bin/dispatch` | Starts or continues the Worker of a task |
-| `bin/pause`, `bin/resume` | Pause and resume all automatic processing |
-| `watchdog/` | The Watchdog's instructions, its runner and its cron installer |
-| `router/` | The scripts that keep the Router running |
+| [`AGENTS.md`](AGENTS.md) | The rules the Router follows. `CLAUDE.md` loads it |
+| [`templates/brief.md`](templates/brief.md) | The template every brief to a Worker starts from |
+| [`bin/dispatch`](bin/dispatch) | Starts or resumes a task's Worker, with queueing, a concurrency cap and retries |
+| [`bin/pause`](bin/pause), [`bin/resume`](bin/resume) | Pause and resume all automatic processing |
+| [`watchdog/`](watchdog) | The Watchdog's instructions, its runner and its cron installer |
+| [`router/`](router) | The scripts that keep the Router running |
 
-## Usage
+Created at run time and never committed: `INDEX.md`, `tasks/`, `projects/`, `.runs/`, `.watchdog/`, `.router/`.
 
-1. Clone this repository into a directory of your own, and start Claude Code in it. From then on, talk to Claude only there.
-2. Optional: start the Watchdog, which runs every 15 minutes:
-   ```sh
-   watchdog/install.sh
-   ```
-3. Optional, on a server: keep the Router always on. Close any other Claude Code session in this directory first, then:
-   ```sh
-   sudo router/install.sh
-   tmux -L ccsa attach -t ccsa-router    # detach with Ctrl-b d
-   ```
+## Design
+
+The architecture follows [*Exploring Super-agent Design: Towards a More Autonomous Agent System*](https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg) by the DeepSeek Harness team, and their reference implementation [deepseek-ai/dsh-superagent-prototype](https://github.com/deepseek-ai/dsh-superagent-prototype). In their experiments, a two-layer Router–Worker system finished concurrent work faster and more predictably than a single session with a subagent tool (p95 of 15.7 versus 29.5 minutes), because a single session tends to do the work itself and keeps getting interrupted.
+
+How their modules map onto Claude Code:
+
+| Super-agent module | In cc-super-agent |
+| --- | --- |
+| Two layers: Router and Workers | ✅ The hub session routes; `claude -p` sessions in project directories do the work |
+| Full-duplex interaction | ✅ Workers run as background commands; the Router keeps talking |
+| Chain of recall | ✅ A linked Markdown wiki, read one hop at a time |
+| Separating compute from state | ✅ All state on disk; the Router resumes its fixed session after any restart |
+| Watchdog | ✅ An independent cron-driven pass over Workers and the Router |
+| Event-driven triggers | 🚧 Not yet: work starts when you ask |
+| Remote execution environments | 🚧 Not yet: Workers run on the same machine |
+
+cc-super-agent is an independent project, not affiliated with DeepSeek or Anthropic.
+
+## Roadmap
+
+- [ ] Event sources, so the Router can notice work without being asked
+- [ ] Workers on other machines
+- [ ] Automated tests for the dispatch and Watchdog scripts
+
+Ideas and issues are welcome.
+
+## FAQ
+
+**Does this modify Claude Code?**
+No. It uses `claude -p`, `--session-id`, `--resume`, `SendMessage`, cron, tmux and systemd, all as they ship.
+
+**Do Workers run with elevated permissions?**
+No. Each Worker uses your own Claude Code settings for its project. The hub never grants more, and never sends work refused in one session to another.
+
+**Will it spam me?**
+It is designed not to. The Router speaks only for a result, a decision or a failure, asks one question at a time, and confirms each new task in a single sentence.
+
+**Does my data end up in the repository?**
+No. `.gitignore` is a whitelist of framework files. Everything else, including your tasks, projects and logs, stays local.
 
 ## Uninstall
 
@@ -58,16 +163,6 @@ The full rules the agent follows are in [AGENTS.md](AGENTS.md).
 watchdog/install.sh --remove
 sudo router/install.sh --remove
 ```
-
-## Privacy
-
-Your personal data stays on your machine. `.gitignore` tracks only the framework files listed in it and ignores everything else, including your work records, run state and logs. Claude Code's memory is stored outside this directory.
-
-Workers run with your own Claude Code permissions. The hub never grants them more.
-
-## Status
-
-Early and experimental.
 
 ## Citation
 
