@@ -13,6 +13,9 @@ mkdir -p .watchdog/logs
 exec 9> .watchdog/lock
 flock -n 9 || exit 0
 
+# While the hub is paused, nothing is expected to progress.
+[ -f .paused ] && exit 0
+
 open_tasks=0
 [ -f INDEX.md ] && open_tasks=$(grep -c '^- ' INDEX.md || true)
 active_runs=$(grep -l '^running' .runs/*/status 2>/dev/null | wc -l || true)
@@ -26,6 +29,12 @@ for d in .runs/*/; do
   t=$(ls "$HOME"/.claude/projects/*/"$(cat "$d/session-id")".jsonl 2>/dev/null | head -1 || true)
   [ -n "$t" ] && echo "$t" > "$d/transcript"
 done
+
+if [ -f .router/session-id ]; then
+  t=$(ls "$HOME"/.claude/projects/*/"$(cat .router/session-id)".jsonl 2>/dev/null | head -1 || true)
+  [ -n "$t" ] && echo "$t" > .router/transcript
+fi
+if tmux -L ccsa has-session -t ccsa-router 2>/dev/null; then echo yes > .router/tmux-alive; else echo no > .router/tmux-alive; fi
 
 log=".watchdog/logs/$(date +%Y%m%d-%H%M%S).log"
 claude -p "$(cat watchdog/prompt.md)" --add-dir "$HOME/.claude/projects" \

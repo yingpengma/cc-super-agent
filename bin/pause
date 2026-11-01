@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Pause all automatic processing of the hub.
+#   bin/pause [reason]
+#
+# While paused: bin/dispatch queues briefs but starts no new round, and the
+# Watchdog skips its passes. Rounds already running are not interrupted.
+# The Router does not dispatch, and tells the user that the hub is paused.
+set -euo pipefail
+hub="$(cd "$(dirname "$0")/.." && pwd)"
+if [ -f "$hub/.paused" ]; then
+  echo "Already paused: $(cat "$hub/.paused")"
+  exit 0
+fi
+echo "$(date -Is) ${*:-no reason given}" > "$hub/.paused"
+echo "Paused."
+running=$(grep -l '^\(running\|retrying\|queued\)' "$hub"/.runs/*/status 2>/dev/null | xargs -r -n1 dirname | xargs -r -n1 basename || true)
+[ -n "$running" ] && echo "Rounds still running, not interrupted: $(echo $running)"
+exit 0

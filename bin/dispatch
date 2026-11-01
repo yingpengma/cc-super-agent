@@ -15,11 +15,15 @@
 #   network error) is retried up to 3 times with growing backoff. A retry of a
 #   session that already started tells the Worker to check what it already did
 #   before repeating anything.
+# - While the hub is paused (bin/pause), briefs are queued but no round starts.
+#   A round already running is not interrupted. After bin/resume, run
+#   `bin/dispatch <task-id> <project-dir> -` to start the queued briefs; `-`
+#   means no new brief.
 #
 # Run state is kept in .runs/<task-id>/ (personal data, never committed):
 #   session-id, project, pid, status, started, ended, result.json, stderr.log,
 #   briefs.log, pending/ (queued briefs)
-#   status is one of: queued, running, retrying <n>, exited <code>
+#   status is one of: queued, running, retrying <n>, paused, exited <code>
 #
 # Permissions: the Worker runs with the user's own Claude Code settings for that
 # project. Pass extra flags such as --permission-mode only when the user has
@@ -27,12 +31,13 @@
 set -euo pipefail
 
 if [ $# -lt 3 ]; then
-  echo "usage: $0 <task-id> <project-dir> <brief-file> [-- extra claude args]" >&2
+  echo "usage: $0 <task-id> <project-dir> <brief-file | -> [-- extra claude args]" >&2
   exit 2
 fi
 
 hub="$(cd "$(dirname "$0")/.." && pwd)"
-task="$1"; project="$(cd "$2" && pwd)"; brief="$(cd "$(dirname "$3")" && pwd)/$(basename "$3")"
+task="$1"; project="$(cd "$2" && pwd)"
+if [ "$3" = "-" ]; then brief=""; else brief="$(cd "$(dirname "$3")" && pwd)/$(basename "$3")"; fi
 shift 3
 [ "${1:-}" = "--" ] && shift
 extra=("$@")
@@ -52,9 +57,18 @@ fi
 echo "$project" > "$run/project"
 [ -f "$run/session-id" ] || uuidgen > "$run/session-id"
 sid="$(cat "$run/session-id")"
-cp "$brief" "$run/pending/$(date +%s%N).md"
+[ -n "$brief" ] && cp "$brief" "$run/pending/$(date +%s%N).md"
 if [ -f "$run/pid" ] && kill -0 "$(cat "$run/pid")" 2>/dev/null; then
   echo "task $task: Worker is busy (pid $(cat "$run/pid")); brief queued for its next round."
+  exit 0
+fi
+if [ -z "$(ls -A "$run/pending")" ]; then
+  echo "task $task: nothing queued."
+  exit 0
+fi
+if [ -f "$hub/.paused" ]; then
+  echo "paused" > "$run/status"
+  echo "task $task: the hub is paused; brief queued. After bin/resume, run: $0 $task $project -"
   exit 0
 fi
 echo $$ > "$run/pid"
@@ -84,6 +98,13 @@ code=0
 while :; do
   # Collect every queued brief into one round, in arrival order.
   flock 8
+  if [ -f "$hub/.paused" ] && [ -n "$(ls -A "$run/pending")" ]; then
+    echo "paused" > "$run/status"
+    rm -f "$run/pid"
+    flock -u 8
+    echo "task $task: the hub was paused; queued briefs wait. After bin/resume, run: $0 $task $project -"
+    exit 0
+  fi
   shopt -s nullglob
   briefs=("$run"/pending/*.md)
   shopt -u nullglob

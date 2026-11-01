@@ -35,6 +35,7 @@ The full rules the agent follows are in [AGENTS.md](AGENTS.md).
 | `AGENTS.md` | The rules the Router follows. `CLAUDE.md` loads it |
 | `templates/brief.md` | The template for every brief sent to a Worker |
 | `bin/dispatch` | Starts or continues the Worker of a task |
+| `bin/pause`, `bin/resume` | Pause and resume all automatic processing |
 | `watchdog/` | The Watchdog's instructions, its runner and its cron installer |
 | `router/` | The scripts that keep the Router running |
 

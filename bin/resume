@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Lift a pause set by bin/pause, and list the tasks whose queued briefs wait.
+# Start each of them with:  bin/dispatch <task-id> <project-dir> -
+set -euo pipefail
+hub="$(cd "$(dirname "$0")/.." && pwd)"
+if [ ! -f "$hub/.paused" ]; then
+  echo "Not paused."
+else
+  rm -f "$hub/.paused"
+  echo "Resumed."
+fi
+for d in "$hub"/.runs/*/; do
+  [ -d "$d/pending" ] && [ -n "$(ls -A "$d/pending")" ] || continue
+  if [ -f "$d/pid" ] && kill -0 "$(cat "$d/pid")" 2>/dev/null; then continue; fi
+  echo "Waiting: bin/dispatch $(basename "$d") $(cat "$d/project") -"
+done
+exit 0

@@ -79,11 +79,28 @@ It follows the design's external control loop:
 - **Observes, diagnoses, reports.** Each pass reads the work records, the run state in `.runs/` and each Worker's session transcript, and judges whether the work is still progressing. Its instructions are in `watchdog/prompt.md`.
 - **Never intervenes.** It does not stop, restart, message or redirect a Worker. It records a finding in the task's log, marks the task's line in `INDEX.md` with ⚠, and sends the Router one short message if the Router is running. It does not repeat an alert that has not changed.
 
+The Watchdog also watches the Router, because a stopped Router tells nobody anything. It flags a Router that is down, stuck on a tool call such as an unanswered permission prompt, or not relaying results that Workers have delivered. It does not message the Router about its own failure; it puts a `⚠ Router:` line at the top of `INDEX.md`, where the Router and the user see it first.
+
 The Router decides what to do with a finding: resume the Worker with `bin/dispatch`, tell the user, or wait. The Router reads ⚠ marks in `INDEX.md` at the start of every turn, so a finding reaches it even if it was offline when the Watchdog ran.
+
+## Pause
+
+`bin/pause [reason]` stops all automatic processing; `bin/resume` lifts it. Either the user runs them, or the Router does at the user's request.
+
+While the hub is paused:
+
+- `bin/dispatch` queues briefs but starts no new round. A round already running is not interrupted.
+- The Watchdog skips its passes, because nothing is expected to progress.
+- The Router dispatches nothing, and says that the hub is paused when the user asks for work.
+
+After `bin/resume`, the Router starts each task whose briefs wait with `bin/dispatch <task-id> <project-dir> -`. `bin/resume` lists them.
+
+A pause covers the whole hub. A hold, described above, covers one task.
 
 ## Talking to the user
 
-- Speak only when there is a result the user can use, a decision the user must make, or work that cannot be finished.
+- **Confirm new work once.** When the Router takes on a new task, or a follow-up that changes one, it replies with one sentence naming the project, the object and the intended result, such as "On it: the homepage Worker will make the title font larger." This lets the user catch a misunderstanding before any work is done. It does not confirm questions, thanks or ordinary conversation, and it does not confirm the same request twice.
+- Otherwise, speak only when there is a result the user can use, a decision the user must make, or work that cannot be finished.
 - Lead with the conclusion. Give details only when asked.
 - Ask at most one question per message.
 - Do not forward a Worker's report as it is. Extract what the user needs and write it fresh.
@@ -180,7 +197,7 @@ A project file stays after its work ends. Projects grow in number only as the us
 This directory is also the repository of the framework. The two never mix:
 
 - **Framework:** files that describe how the hub works and hold nothing about a particular user. Only these are committed. `.gitignore` lists them explicitly and ignores everything else, so a new file is personal until someone deliberately adds it to the list.
-- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, Worker run state in `.runs/`, Watchdog logs in `.watchdog/`, Router state in `.router/`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
+- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, Worker run state in `.runs/`, Watchdog logs in `.watchdog/`, Router state in `.router/`, the pause flag `.paused`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
 
 Framework files, including this one, contain no personal information. A personal fact goes into memory or the work records, never into a framework file.
 

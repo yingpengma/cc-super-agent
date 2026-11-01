@@ -35,6 +35,7 @@
 | `AGENTS.md` | Router 遵守的规则，由 `CLAUDE.md` 加载 |
 | `templates/brief.md` | 派给 Worker 的任务说明模板 |
 | `bin/dispatch` | 启动某项任务的 Worker，或让已有的 Worker 继续工作 |
+| `bin/pause`、`bin/resume` | 暂停、恢复所有自动处理 |
 | `watchdog/` | Watchdog 的指令、运行脚本和定时任务安装脚本 |
 | `router/` | 让 Router 保持运行的脚本 |
 
