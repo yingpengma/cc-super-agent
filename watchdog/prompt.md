@@ -5,7 +5,7 @@ Your job is to find work that has stopped making progress without anyone being t
 ## 1. Collect
 
 - Read `INDEX.md`, and the task file of each open task.
-- For each directory in `.runs/`, read `status`, `pid`, `started`, `ended`, `session-id`, `project` and `transcript`.
+- For each directory in `.runs/`, read `status`, `pid`, `started`, `ended`, `session-id`, `project` and `transcript`, and list `pending/`. A task in status `queued` is waiting for a worker slot; that is normal unless its pid is gone.
 - For a run whose status is `running`, check whether its pid is alive with `ps -p <pid>`.
 - `transcript` holds the path of the Worker's session transcript. Note its last modification time with `stat`, and read its last entries with `tail`. Read only what you need.
 - A task whose Worker is a live session reached with SendMessage may record its session id in the task file; find its transcript with `ls ~/.claude/projects/*/<session-id>.jsonl` and check it the same way.
@@ -16,7 +16,9 @@ Flag a task only on one of these findings:
 
 | Finding | Evidence |
 | --- | --- |
-| Died | Status `running`, but the pid is gone and there is no `ended` |
+| Died | Status `queued`, `running` or `retrying`, but the pid is gone and there is no `ended` |
+| Stranded | Briefs wait in `pending/`, but no dispatch for the task is alive to pick them up |
+| Never started | The task's log records a dispatch, but `.runs/` has no directory for it |
 | Silent | Process alive, but the transcript has not changed for 30 minutes |
 | Stuck on a tool | The last transcript entry is a tool call with no result for 15 minutes, for example waiting for a permission prompt or a command that never returns |
 | Looping | The recent entries repeat the same actions or errors without new results |

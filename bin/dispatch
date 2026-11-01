@@ -3,13 +3,23 @@
 #
 #   bin/dispatch <task-id> <project-dir> <brief-file> [-- extra claude args]
 #
-# The first call for a task starts a new Claude Code session in <project-dir>
-# with a fixed session id. Later calls for the same task resume that session,
-# so a follow-up reaches the Worker that already holds the task's context.
+# - The first call for a task starts a new Claude Code session in <project-dir>
+#   with a fixed session id. Later calls resume that session, so a follow-up
+#   reaches the Worker that already holds the task's context.
+# - A call made while the task's Worker is running is queued, not refused. The
+#   running dispatch picks it up when the current round ends, and resumes the
+#   same session with every queued brief at once.
+# - At most CCSA_MAX_WORKERS Workers (default 3) run at once across all tasks.
+#   A dispatch waits for a free slot with status `queued`.
+# - A round that fails with a transient error (rate limit, overload, server or
+#   network error) is retried up to 3 times with growing backoff. A retry of a
+#   session that already started tells the Worker to check what it already did
+#   before repeating anything.
 #
 # Run state is kept in .runs/<task-id>/ (personal data, never committed):
-#   session-id, project, pid, status (running | exited <code>), started, ended,
-#   result.json (the last run's final output), stderr.log, briefs.log
+#   session-id, project, pid, status, started, ended, result.json, stderr.log,
+#   briefs.log, pending/ (queued briefs)
+#   status is one of: queued, running, retrying <n>, exited <code>
 #
 # Permissions: the Worker runs with the user's own Claude Code settings for that
 # project. Pass extra flags such as --permission-mode only when the user has
@@ -25,40 +35,93 @@ hub="$(cd "$(dirname "$0")/.." && pwd)"
 task="$1"; project="$(cd "$2" && pwd)"; brief="$(cd "$(dirname "$3")" && pwd)/$(basename "$3")"
 shift 3
 [ "${1:-}" = "--" ] && shift
-run="$hub/.runs/$task"
-mkdir -p "$run"
+extra=("$@")
 
-if [ -f "$run/status" ] && grep -q '^running' "$run/status" && kill -0 "$(cat "$run/pid" 2>/dev/null)" 2>/dev/null; then
-  echo "task $task: a Worker run is still active (pid $(cat "$run/pid"))" >&2
+max_workers="${CCSA_MAX_WORKERS:-3}"
+retries=3
+run="$hub/.runs/$task"
+mkdir -p "$run/pending" "$hub/.runs/.slots"
+
+# --- Queue the brief, or become the task's runner -------------------------
+exec 8> "$run/lock"
+flock 8
+if [ -f "$run/project" ] && [ "$(cat "$run/project")" != "$project" ]; then
+  echo "task $task belongs to $(cat "$run/project"), not $project" >&2
   exit 1
 fi
-
-if [ -f "$run/session-id" ]; then
-  if [ "$(cat "$run/project")" != "$project" ]; then
-    echo "task $task belongs to $(cat "$run/project"), not $project" >&2
-    exit 1
-  fi
-  session_args=(--resume "$(cat "$run/session-id")")
-else
-  uuidgen > "$run/session-id"
-  echo "$project" > "$run/project"
-  session_args=(--session-id "$(cat "$run/session-id")")
+echo "$project" > "$run/project"
+[ -f "$run/session-id" ] || uuidgen > "$run/session-id"
+sid="$(cat "$run/session-id")"
+cp "$brief" "$run/pending/$(date +%s%N).md"
+if [ -f "$run/pid" ] && kill -0 "$(cat "$run/pid")" 2>/dev/null; then
+  echo "task $task: Worker is busy (pid $(cat "$run/pid")); brief queued for its next round."
+  exit 0
 fi
-
-{ echo "=== $(date -Is)"; cat "$brief"; echo; } >> "$run/briefs.log"
-echo "running" > "$run/status"
-date -Is > "$run/started"
-rm -f "$run/ended"
 echo $$ > "$run/pid"
+rm -f "$run/ended"
+date -Is > "$run/started"
+flock -u 8
 
-cd "$project"
-set +e
-claude -p "$(cat "$brief")" "${session_args[@]}" --output-format json "$@" \
-  > "$run/result.json" 2> "$run/stderr.log"
-code=$?
-set -e
+# --- Take a worker slot ---------------------------------------------------
+echo "queued" > "$run/status"
+while :; do
+  for i in $(seq 1 "$max_workers"); do
+    exec 9> "$hub/.runs/.slots/$i"
+    if flock -n 9; then break 2; fi
+    exec 9>&-
+  done
+  sleep 10
+done
 
-echo "exited $code" > "$run/status"
-date -Is > "$run/ended"
-echo "task $task: Worker exited with code $code; session $(cat "$run/session-id"); result in $run/result.json"
+transcript_exists() { ls "$HOME"/.claude/projects/*/"$sid".jsonl >/dev/null 2>&1; }
+transient() {
+  grep -qiE '\b(408|429|5[0-9]{2})\b|overloaded|rate.?limit|timed? ?out|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|network|socket hang up' \
+    "$run/stderr.log" "$run/result.json" 2>/dev/null
+}
+
+rounds=0
+code=0
+while :; do
+  # Collect every queued brief into one round, in arrival order.
+  flock 8
+  shopt -s nullglob
+  briefs=("$run"/pending/*.md)
+  shopt -u nullglob
+  if [ ${#briefs[@]} -eq 0 ]; then
+    echo "exited $code" > "$run/status"
+    date -Is > "$run/ended"
+    rm -f "$run/pid"
+    flock -u 8
+    break
+  fi
+  prompt=""
+  for b in "${briefs[@]}"; do
+    prompt+="$(cat "$b")"$'\n\n'
+    { echo "=== $(date -Is)"; cat "$b"; echo; } >> "$run/briefs.log"
+    rm -f "$b"
+  done
+  flock -u 8
+  rounds=$((rounds + 1))
+
+  attempt=0
+  while :; do
+    if transcript_exists; then session_args=(--resume "$sid"); else session_args=(--session-id "$sid"); fi
+    echo "running" > "$run/status"
+    set +e
+    (cd "$project" && claude -p "$prompt" "${session_args[@]}" --output-format json "${extra[@]}" \
+      < /dev/null > "$run/result.json" 2> "$run/stderr.log")
+    code=$?
+    set -e
+    [ "$code" -eq 0 ] && break
+    if [ "$attempt" -ge "$retries" ] || ! transient; then break; fi
+    attempt=$((attempt + 1))
+    echo "retrying $attempt" > "$run/status"
+    sleep $((30 * 2 ** (attempt - 1)))
+    if transcript_exists; then
+      prompt="Your previous turn was cut off by a transient error. Check what you already did, including files, git history and anything already sent, before repeating any action. Then continue the task."
+    fi
+  done
+done
+
+echo "task $task: Worker finished $rounds round(s), last exit code $code; session $sid; result in $run/result.json"
 exit "$code"

@@ -32,7 +32,13 @@ A Worker is a Claude Code session working in one project's directory on one piec
 
 A Worker is reached in one of two ways:
 
-- **A dispatched Worker:** the Router writes the brief to a file and runs `bin/dispatch <task-id> <project-dir> <brief-file>` as a background command. The first call for a task starts a new session with a fixed session id; later calls for the same task resume that session, so follow-ups reach the Worker that already holds the context. The result returns to the Router when the command ends. Run state is kept in `.runs/<task-id>/`.
+- **A dispatched Worker:** the Router writes the brief to a file and runs `bin/dispatch <task-id> <project-dir> <brief-file>` as a background command. The result returns to the Router when the command ends. The script:
+  - starts a new session with a fixed session id on a task's first call, and resumes that session on later calls, so follow-ups reach the Worker that already holds the context;
+  - queues a brief that arrives while the task's Worker is running, and hands every queued brief to the Worker together when its current round ends;
+  - runs at most `CCSA_MAX_WORKERS` Workers at once (default 3), so parallel work does not exhaust rate limits; the rest wait their turn;
+  - retries a round that fails with a transient error, such as a rate limit, an overload or a network error, up to three times with growing backoff, and tells a Worker that had already started to check what it did before repeating anything.
+
+  Run state is kept in `.runs/<task-id>/`.
 - **A live session:** if the user already has a session open in that project, the Router sends it a message with `SendMessage` and asks to be notified when it is idle. If the session's id is known, the Router records it in the task file so the Watchdog can observe it.
 
 The user may also go into a Worker's session and talk to it directly. When they do, the Router learns what happened from the Worker's next report, or from the user.
@@ -165,3 +171,5 @@ Framework files, including this one, contain no personal information. A personal
 ### Keeping the records current
 
 The Router updates the records in the same turn as the event that changes them: a new task, a dispatch, a report, a decision by the user, or an end. A record that has fallen behind is worse than no record, because the Router will trust it.
+
+**Record first, then act.** Before dispatching, the Router writes the task file and its `INDEX.md` line, and logs the dispatch. Only then does it run `bin/dispatch`. If the Router is closed or its context is compacted halfway, the records show what was intended, and the Watchdog can find work that was recorded but never started.
