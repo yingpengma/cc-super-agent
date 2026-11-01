@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below, and cite the Super-agent design it builds on."
+title: "cc-super-agent: A Personal Agent Hub for Claude Code"
+type: software
+authors:
+  - alias: yingpengma
+repository-code: "https://github.com/yingpengma/cc-super-agent"
+license: MIT
+date-released: "2026-11-01"
+keywords:
+  - claude-code
+  - agents
+  - super-agent
+  - router-worker
+references:
+  - type: article
+    title: "Super-agent 设计探索：迈向更自主的 Agent 系统 (Exploring Super-agent Design: Towards a More Autonomous Agent System)"
+    authors:
+      - family-names: Qiao
+        given-names: Yujia
+      - name: "DeepSeek Harness Team"
+    date-published: "2026-10-31"
+    url: "https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg"
+  - type: software
+    title: "dsh-superagent-prototype"
+    authors:
+      - name: DeepSeek
+    license: MIT
+    repository-code: "https://github.com/deepseek-ai/dsh-superagent-prototype"

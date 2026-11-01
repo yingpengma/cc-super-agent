@@ -68,6 +68,30 @@ Worker 使用你本人的 Claude Code 权限运行，本项目不会额外授予
 
 早期实验阶段。
 
+## 引用
+
+如果你使用了本项目，请引用本项目及其所依据的设计：
+
+```bibtex
+@software{cc_super_agent_2026,
+  author = {yingpengma},
+  title  = {cc-super-agent: A Personal Agent Hub for Claude Code},
+  year   = {2026},
+  url    = {https://github.com/yingpengma/cc-super-agent}
+}
+
+@misc{deepseek_superagent_2026,
+  author       = {Qiao, Yujia and {DeepSeek Harness Team}},
+  title        = {Exploring Super-agent Design: Towards a More Autonomous Agent System},
+  howpublished = {WeChat official account of the DeepSeek Harness team},
+  year         = {2026},
+  month        = oct,
+  url          = {https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg}
+}
+```
+
+GitHub 也会读取 [CITATION.cff](CITATION.cff)。
+
 ## 许可证
 
 [MIT](LICENSE)
