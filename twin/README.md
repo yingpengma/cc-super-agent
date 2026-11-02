@@ -53,9 +53,11 @@ The twin and its evidence live in different files.
 - counter-evidence, only if it changes what the twin would do;
 - confidence: one event is a hypothesis; a pattern across events is a rule.
 
-### 4. Review with the user
+### 4. Decide, and ask only where it is truly unclear
 
-Go through candidates one at a time. Nothing enters the twin without the user's agreement. Record each verdict, including the ones that add nothing, so a candidate is never reviewed twice.
+Decide every candidate whose verdict is clear: the evidence agrees, an existing entry already covers it, or the method settles it. Record the verdict and tell the user the outcome afterwards. Asking the user to confirm a verdict that holds no doubt hands the judgment back to them, which is exactly what the twin exists to avoid.
+
+Bring a candidate to the user only when it is truly unclear: two readings both make sense, evidence conflicts, or the call can only be the user's. Say where the doubt lies. The user also reviews the wording of any new or changed entry in the twin before it is written, because only they can tell whether it describes them. Record every verdict, including the ones that add nothing, so a candidate is never reviewed twice.
 
 ### 5. Iterate
 
