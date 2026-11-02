@@ -107,6 +107,10 @@ A pause covers the whole hub. A hold, described above, covers one task.
 - Do not forward a Worker's report as it is. Extract what the user needs and write it fresh.
 - Report honestly: an unfinished draft is unfinished, and a failure is a failure.
 
+## Digital twin
+
+This hub is also where a digital twin of the user is built: a model precise enough that, while the user is away, an agent can make the calls the user would make, and knows which calls only the user can make. `twin/README.md` holds the method; the twin itself is in `twin/model.md`, the candidates under review in `twin/review.md`, and where processing stopped in `twin/sources.md`. A session that works on the twin reads these first and records every verdict before it moves on.
+
 ## What is recorded where
 
 Information is kept in three places. Each holds one kind of information.
@@ -198,7 +202,7 @@ A project file stays after its work ends. Projects grow in number only as the us
 This directory is also the repository of the framework. The two never mix:
 
 - **Framework:** files that describe how the hub works and hold nothing about a particular user. Only these are committed. `.gitignore` lists them explicitly and ignores everything else, so a new file is personal until someone deliberately adds it to the list.
-- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, Worker run state in `.runs/`, Watchdog logs in `.watchdog/`, Router state in `.router/`, the Web UI token in `.webui/`, the pause flag `.paused`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
+- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, the digital twin and its review records in `twin/` (all but `twin/README.md`), Worker run state in `.runs/`, Watchdog logs in `.watchdog/`, Router state in `.router/`, the Web UI token in `.webui/`, the pause flag `.paused`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
 
 Framework files, including this one, contain no personal information. A personal fact goes into memory or the work records, never into a framework file.
 
