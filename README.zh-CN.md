@@ -42,6 +42,7 @@ cc-super-agent 是 DeepSeek 于 2026 年 10 月发布的 **Super-agent** 设计�
 - ♾️ **常驻在线。** 在服务器上，Router 由 systemd 托管在 tmux 中运行，任何一次重启后都会恢复自己原来的会话，并根据记录接续之前的工作。
 - 🧠 **看得懂的记忆。** 你的偏好存入 Claude Code 的记忆；你的工作存入一套三层的 Markdown wiki：一个索引、每项任务一个文件、每个项目一个文件。Router 顺着链接逐层读取，而不是一次性加载全部内容。
 - 🛑 **始终由你掌控。** 你说"先停一下"，即使 Worker 重启也依然有效，直到你亲自放行。`bin/pause` 可以一键停下所有工作。Worker 永远不会获得你没有授予的权限。
+- 🌐 **终端和浏览器都能用。** 可以在终端里跟 Router 对话，也可以打开网页界面：左边聊天，右边是进行中的工作，Router 请求权限时直接点按钮回答。两边是同一个对话。
 - 🔒 **默认保护隐私。** 仓库只跟踪白名单中的框架文件。你的任务、项目、日志和记忆都不会离开你的机器。
 
 ## 工作原理
@@ -85,7 +86,31 @@ Router： 首页标题已经调大，PR #42 可以评审了。
 
 ## 快速开始
 
-**运行要求：** Linux 系统，装有 bash，以及 util-linux 中的 `flock` 和 `uuidgen`；已登录的 Claude Code 命令行工具（已在 2.1.316 版本上测试）。使用 Watchdog 需要 cron；让 Router 常驻在线需要 tmux、systemd 和 root 权限。
+**运行要求：** Linux 系统，装有 bash，以及 util-linux 中的 `flock` 和 `uuidgen`；已登录的 Claude Code 命令行工具（已在 2.1.316 版本上测试）。使用 Watchdog 需要 cron；让 Router 常驻在线需要 tmux、systemd 和 root 权限。网页界面需要 Node.js，安装 Claude Code 时已经自带。
+
+跟 Router 对话有两种方式。两种方式连的是同一个 Router、同一套记录，随时可以切换。
+
+### 在浏览器里用（网页版）
+
+在服务器上运行：
+
+```sh
+git clone https://github.com/yingpengma/cc-super-agent.git ~/super-agent
+cd ~/super-agent
+watchdog/install.sh        # 每 15 分钟运行一次 Watchdog 巡检
+sudo router/install.sh     # 由 systemd 托管，让 Router 持续运行
+sudo web/install.sh        # 启动网页界面，并打印要打开的网址
+```
+
+网页界面只在服务器本机监听（`127.0.0.1:8787`）。在你自己的电脑上先建一条 SSH 隧道，再打开打印出来的网址：
+
+```sh
+ssh -L 8787:localhost:8787 <你的服务器>
+```
+
+网址里带着访问口令（也保存在 `.webui/token`），浏览器会记住它。没有 root 权限时，用先运行 `router/start.sh`、再运行 `web/start.sh` 代替上面两行 `install.sh`。
+
+### 在终端里用（命令行版）
 
 ```sh
 git clone https://github.com/yingpengma/cc-super-agent.git ~/super-agent
@@ -113,8 +138,9 @@ tmux -L ccsa attach -t ccsa-router     # 与它对话；按 Ctrl-b 再按 d 即�
 | [`bin/pause`](bin/pause)、[`bin/resume`](bin/resume) | 暂停、恢复所有自动处理 |
 | [`watchdog/`](watchdog) | Watchdog 的指令、运行脚本和定时任务安装脚本 |
 | [`router/`](router) | 让 Router 保持运行的脚本 |
+| [`web/`](web) | 网页界面：不依赖任何 npm 包的 Node 服务、页面，以及 systemd 安装脚本 |
 
-运行时生成、永不提交的内容：`INDEX.md`、`tasks/`、`projects/`、`.runs/`、`.watchdog/`、`.router/`。
+运行时生成、永不提交的内容：`INDEX.md`、`tasks/`、`projects/`、`.runs/`、`.watchdog/`、`.router/`、`.webui/`。
 
 ## 设计来源
 
@@ -164,6 +190,9 @@ cc-super-agent 是独立项目，与 DeepSeek 及 Anthropic 均无隶属关系�
 **它会不停地打扰我吗？**
 设计上不会。Router 只在有结果、需要你做决定或者工作失败时才开口，每次只问一个问题，每项新任务只用一句话确认。
 
+**网页界面可以直接暴露到公网吗？**
+默认只在服务器本机监听，而且每个请求都要带口令。如果不想用 SSH 隧道，请放在 HTTPS 反向代理后面，并用 `--host 0.0.0.0` 启动。拿到口令的人就能跟你的 Router 对话，所以要像密码一样保管。
+
 **我的数据会被提交到仓库里吗？**
 不会。`.gitignore` 是一份框架文件的白名单，其余所有内容，包括你的任务、项目和日志，都只保存在本地。
 
@@ -172,6 +201,7 @@ cc-super-agent 是独立项目，与 DeepSeek 及 Anthropic 均无隶属关系�
 ```sh
 watchdog/install.sh --remove
 sudo router/install.sh --remove
+sudo web/install.sh --remove
 ```
 
 ## 引用

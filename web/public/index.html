@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Super-agent</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<div id="login" class="login" hidden>
+  <form id="login-form" class="login-card">
+    <img src="icon.svg" alt="" width="40" height="40">
+    <h1 data-i18n="loginTitle"></h1>
+    <p data-i18n="loginHelp"></p>
+    <label for="login-token" data-i18n="loginLabel"></label>
+    <input id="login-token" type="password" autocomplete="off" spellcheck="false" required>
+    <p id="login-error" class="error" hidden data-i18n="loginWrong"></p>
+    <button type="submit" class="primary" data-i18n="loginButton"></button>
+  </form>
+</div>
+
+<div id="app" class="app" hidden>
+  <header class="top">
+    <div class="brand">
+      <img src="icon.svg" alt="" width="22" height="22">
+      <span data-i18n="brand"></span>
+    </div>
+    <div class="router-status" id="router-status" aria-live="polite"></div>
+    <button id="panel-toggle" class="ghost panel-toggle" aria-controls="side" aria-expanded="false" data-i18n="work"></button>
+  </header>
+
+  <main class="chat" id="chat">
+    <div class="chat-scroll" id="chat-scroll" tabindex="-1">
+      <div class="chat-inner" id="messages" role="log" aria-live="polite"></div>
+    </div>
+
+    <div class="dock">
+      <section id="banner" class="banner" hidden></section>
+      <form id="composer" class="composer">
+        <label for="input" class="sr-only" data-i18n="inputLabel"></label>
+        <textarea id="input" rows="1" data-i18n-placeholder="inputPlaceholder"></textarea>
+        <button type="submit" id="send" class="primary" data-i18n="send"></button>
+      </form>
+      <p class="hint" data-i18n="hint"></p>
+    </div>
+  </main>
+
+  <aside class="side" id="side" aria-labelledby="side-title">
+    <div class="side-head">
+      <h2 id="side-title" data-i18n="inFlight"></h2>
+      <button id="panel-close" class="ghost panel-close" data-i18n="close"></button>
+    </div>
+    <div id="alerts"></div>
+    <ul class="lines" id="tasks"></ul>
+
+    <h2 data-i18n="workers"></h2>
+    <ul class="runs" id="runs"></ul>
+
+    <div class="side-foot">
+      <div id="pause-area"></div>
+      <button id="show-terminal" class="ghost" data-i18n="showTerminal"></button>
+    </div>
+  </aside>
+</div>
+
+<dialog id="task-dialog" class="sheet" aria-labelledby="task-dialog-title">
+  <div class="sheet-head">
+    <h2 id="task-dialog-title"></h2>
+    <button class="ghost" data-close data-i18n="close"></button>
+  </div>
+  <div class="sheet-body md" id="task-dialog-body"></div>
+</dialog>
+
+<dialog id="term-dialog" class="sheet wide" aria-labelledby="term-dialog-title">
+  <div class="sheet-head">
+    <h2 id="term-dialog-title" data-i18n="terminal"></h2>
+    <button class="ghost" data-close data-i18n="close"></button>
+  </div>
+  <p class="sheet-note" data-i18n="terminalNote"></p>
+  <pre class="screen" id="term-screen"></pre>
+  <div class="keys" id="term-keys"></div>
+</dialog>
+</body>
+</html>

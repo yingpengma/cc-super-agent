@@ -65,6 +65,7 @@ The Router runs on a server that stays on, so it keeps working when the user dis
 - **A fixed session.** The Router's session id is kept in `.router/session-id`, and every start resumes that session. `claude --continue` is not used, because any other session started in this directory would be picked up instead.
 - **Kept alive.** `router/loop.sh` runs the Router inside a tmux session named `ccsa-router` on its own tmux socket, and starts it again whenever it exits. `router/install.sh` installs a systemd service that creates the tmux session at boot and recreates it if it dies.
 - **Reached over SSH.** The user attaches with `tmux -L ccsa attach -t ccsa-router`, and detaches with `Ctrl-b d`, which leaves the Router running.
+- **Reached in a browser.** `web/server.mjs` serves a Web UI, installed as a service by `web/install.sh`. It pastes the user's messages into the Router's tmux pane and reads the conversation back from the Router's transcript, so the terminal and the browser are one conversation. It also shows the work in flight from `INDEX.md` and `.runs/`, turns the Router's terminal prompts into buttons, and offers pause and resume. It listens on `127.0.0.1` by default and requires the token in `.webui/token`. The Router behaves the same whichever way the user reaches it.
 
 Only one process may run the Router's session at a time. Before the service starts it, close any other copy.
 
@@ -197,7 +198,7 @@ A project file stays after its work ends. Projects grow in number only as the us
 This directory is also the repository of the framework. The two never mix:
 
 - **Framework:** files that describe how the hub works and hold nothing about a particular user. Only these are committed. `.gitignore` lists them explicitly and ignores everything else, so a new file is personal until someone deliberately adds it to the list.
-- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, Worker run state in `.runs/`, Watchdog logs in `.watchdog/`, Router state in `.router/`, the pause flag `.paused`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
+- **Personal data:** `INDEX.md`, `tasks/`, `projects/`, Worker run state in `.runs/`, Watchdog logs in `.watchdog/`, Router state in `.router/`, the Web UI token in `.webui/`, the pause flag `.paused`, downloaded references and anything else about the user or their work. It stays on the local machine. Memory lives outside this directory and is never committed.
 
 Framework files, including this one, contain no personal information. A personal fact goes into memory or the work records, never into a framework file.
 

@@ -42,6 +42,7 @@ You keep **one** conversation. Behind it, a Router hands each piece of work to i
 - ♾️ **Always on.** On a server, the Router lives in tmux under systemd, resumes its own session after any restart, and picks up from its records.
 - 🧠 **A memory you can read.** Your preferences go into Claude Code's memory. Your work goes into a three-layer Markdown wiki: an index, one file per task, one per project. The Router follows links one hop at a time instead of loading everything.
 - 🛑 **You stay in control.** "Hold this" survives Worker restarts until you lift it. `bin/pause` stops everything at once. Workers never get permissions you did not grant.
+- 🌐 **In the terminal or in the browser.** Talk to the Router in its terminal, or open the Web UI: a chat page with your work in flight beside it, and buttons for the Router's permission prompts. Both are the same conversation.
 - 🔒 **Private by default.** The repository tracks a whitelist of framework files. Your tasks, projects, logs and memory never leave your machine.
 
 ## How it works
@@ -85,7 +86,31 @@ Router: The homepage title is larger; PR #42 is ready for review.
 
 ## Quick start
 
-**Requirements:** Linux with bash, `flock` and `uuidgen` (util-linux), and the Claude Code CLI, signed in (tested with 2.1.316). The Watchdog needs cron. An always-on Router needs tmux, systemd and root.
+**Requirements:** Linux with bash, `flock` and `uuidgen` (util-linux), and the Claude Code CLI, signed in (tested with 2.1.316). The Watchdog needs cron. An always-on Router needs tmux, systemd and root. The Web UI needs Node.js, which Claude Code already installs.
+
+There are two ways to talk to the Router. Both reach the same Router and the same records, so you can switch at any time.
+
+### In the browser (Web UI)
+
+On the server:
+
+```sh
+git clone https://github.com/yingpengma/cc-super-agent.git ~/super-agent
+cd ~/super-agent
+watchdog/install.sh        # a Watchdog pass every 15 minutes
+sudo router/install.sh     # keep the Router running under systemd
+sudo web/install.sh        # serve the Web UI; prints the address to open
+```
+
+The Web UI listens on the server itself (`127.0.0.1:8787`). From your own computer, open a tunnel, then open the printed address:
+
+```sh
+ssh -L 8787:localhost:8787 <your server>
+```
+
+The address carries an access token, also kept in `.webui/token`; your browser remembers it. Without root, run `router/start.sh` and then `web/start.sh` in place of the two `install.sh` lines.
+
+### In the terminal (CLI)
 
 ```sh
 git clone https://github.com/yingpengma/cc-super-agent.git ~/super-agent
@@ -113,8 +138,9 @@ Close any other Claude Code session in this directory before installing the Rout
 | [`bin/pause`](bin/pause), [`bin/resume`](bin/resume) | Pause and resume all automatic processing |
 | [`watchdog/`](watchdog) | The Watchdog's instructions, its runner and its cron installer |
 | [`router/`](router) | The scripts that keep the Router running |
+| [`web/`](web) | The Web UI: a dependency-free Node server, the page, and its systemd installer |
 
-Created at run time and never committed: `INDEX.md`, `tasks/`, `projects/`, `.runs/`, `.watchdog/`, `.router/`.
+Created at run time and never committed: `INDEX.md`, `tasks/`, `projects/`, `.runs/`, `.watchdog/`, `.router/`, `.webui/`.
 
 ## Design
 
@@ -164,6 +190,9 @@ No. Each Worker uses your own Claude Code settings for its project. The hub neve
 **Will it spam me?**
 It is designed not to. The Router speaks only for a result, a decision or a failure, asks one question at a time, and confirms each new task in a single sentence.
 
+**Is the Web UI safe to expose?**
+By default it listens only on the server, and every request needs the token. To reach it without an SSH tunnel, put it behind HTTPS (a reverse proxy) and start it with `--host 0.0.0.0`. Anyone with the token can talk to your Router, so keep it like a password.
+
 **Does my data end up in the repository?**
 No. `.gitignore` is a whitelist of framework files. Everything else, including your tasks, projects and logs, stays local.
 
@@ -172,6 +201,7 @@ No. `.gitignore` is a whitelist of framework files. Everything else, including y
 ```sh
 watchdog/install.sh --remove
 sudo router/install.sh --remove
+sudo web/install.sh --remove
 ```
 
 ## Citation
