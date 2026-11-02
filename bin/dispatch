@@ -15,6 +15,9 @@
 #   network error) is retried up to 3 times with growing backoff. A retry of a
 #   session that already started tells the Worker to check what it already did
 #   before repeating anything.
+# - Every round appends templates/worker-rules.md (the Workers' standing rules,
+#   including the report format) to the Worker's system prompt, so briefs carry
+#   only the user's words, routing facts and holds.
 # - While the hub is paused (bin/pause), briefs are queued but no round starts.
 #   A round already running is not interrupted. After bin/resume, run
 #   `bin/dispatch <task-id> <project-dir> -` to start the queued briefs; `-`
@@ -87,6 +90,10 @@ while :; do
   sleep 10
 done
 
+# The Workers' standing rules, minus the leading comment, with the task id.
+rules="$(sed '/^<!--/,/^-->/d' "$hub/templates/worker-rules.md")"
+rules="${rules//\{task-id\}/$task}"
+
 transcript_exists() { ls "$HOME"/.claude/projects/*/"$sid".jsonl >/dev/null 2>&1; }
 transient() {
   grep -qiE '\b(408|429|5[0-9]{2})\b|overloaded|rate.?limit|timed? ?out|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|network|socket hang up' \
@@ -129,7 +136,7 @@ while :; do
     if transcript_exists; then session_args=(--resume "$sid"); else session_args=(--session-id "$sid"); fi
     echo "running" > "$run/status"
     set +e
-    (cd "$project" && claude -p "$prompt" "${session_args[@]}" --output-format json "${extra[@]}" \
+    (cd "$project" && claude -p "$prompt" "${session_args[@]}" --append-system-prompt "$rules" --output-format json "${extra[@]}" \
       < /dev/null > "$run/result.json" 2> "$run/stderr.log")
     code=$?
     set -e

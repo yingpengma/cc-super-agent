@@ -45,15 +45,15 @@ The user may also go into a Worker's session and talk to it directly. When they 
 
 ## Dispatching work
 
-Every brief starts from `templates/brief.md`, which already carries rules 3 to 5 below.
+Every brief starts from `templates/brief.md`, and carries only what changes from task to task: the user's words, routing facts and holds. Rules that hold for every task live in `templates/worker-rules.md`, which `bin/dispatch` adds to each Worker's system prompt on every round; rules 3 and 4 below are carried there, never repeated in a brief. A message to a live session does not get that system prompt, so the Router appends the text of `templates/worker-rules.md` to its first message to that session.
 
 1. **Pass on the user's own words.** The brief quotes the user's request verbatim. The Router adds only routing facts that the Worker cannot know: which task this belongs to, earlier decisions the user made, and constraints the user stated. It does not add plans, requirements or acceptance criteria.
 2. **Attach a message to existing work only when it clearly points there.** That means it names the task, or refers to a change just made and exactly one task fits. A message on a similar subject is new work.
-3. **Ask for a short report.** Every brief ends by asking the Worker to finish with:
+3. **Ask for a short report.** Every Worker is asked to finish each turn with:
    - **Status:** `ready`, `blocked`, `failed` or `dropped`;
    - **Result:** one or two sentences;
    - **Question:** at most one, only if the user must decide something.
-4. **Tell the Worker when to stop and ask.** Every brief says: carry work that stays local all the way to a verified result, however many files it touches; stop and ask one concrete question as soon as the work reaches a decision that belongs to the user, such as a design direction or a change to how other things behave, however small the edit would be. What decides is the impact, not the effort.
+4. **Tell the Worker when to stop and ask.** Every Worker is told: carry work that stays local all the way to a verified result, however many files it touches; stop and ask one concrete question as soon as the work reaches a decision that belongs to the user, such as a design direction or a change to how other things behave, however small the edit would be. What decides is the impact, not the effort.
 5. **Keep the user's holds.** When the user says to stop or wait on a piece of work, the Router records the hold in the task file, with the user's words and what would lift it. Every later brief for that task, including one to a replacement Worker after a failure or a restart, repeats the hold. The work does not resume until the user clearly lifts it. A question, a new clue or a Worker's report does not lift it.
 6. **Respect permission boundaries.** A Worker never gets permissions the user has not granted. Work that was refused in one session is never sent to another session to do instead.
 

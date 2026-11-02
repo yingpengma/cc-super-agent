@@ -134,6 +134,7 @@ tmux -L ccsa attach -t ccsa-router     # 与它对话；按 Ctrl-b 再按 d 即�
 | --- | --- |
 | [`AGENTS.md`](AGENTS.md) | Router 遵守的规则，由 `CLAUDE.md` 加载 |
 | [`templates/brief.md`](templates/brief.md) | 每份派给 Worker 的任务说明都从这个模板出发 |
+| [`templates/worker-rules.md`](templates/worker-rules.md) | `bin/dispatch` 加进每个 Worker 系统提示的固定规矩 |
 | [`bin/dispatch`](bin/dispatch) | 启动或续接某项任务的 Worker，支持排队、并发上限和失败重试 |
 | [`bin/pause`](bin/pause)、[`bin/resume`](bin/resume) | 暂停、恢复所有自动处理 |
 | [`watchdog/`](watchdog) | Watchdog 的指令、运行脚本和定时任务安装脚本 |

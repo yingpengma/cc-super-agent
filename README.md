@@ -134,6 +134,7 @@ Close any other Claude Code session in this directory before installing the Rout
 | --- | --- |
 | [`AGENTS.md`](AGENTS.md) | The rules the Router follows. `CLAUDE.md` loads it |
 | [`templates/brief.md`](templates/brief.md) | The template every brief to a Worker starts from |
+| [`templates/worker-rules.md`](templates/worker-rules.md) | Standing rules that `bin/dispatch` adds to every Worker's system prompt |
 | [`bin/dispatch`](bin/dispatch) | Starts or resumes a task's Worker, with queueing, a concurrency cap and retries |
 | [`bin/pause`](bin/pause), [`bin/resume`](bin/resume) | Pause and resume all automatic processing |
 | [`watchdog/`](watchdog) | The Watchdog's instructions, its runner and its cron installer |
