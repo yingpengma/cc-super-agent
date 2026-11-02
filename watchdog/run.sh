@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # One Watchdog pass. Meant to be run by cron; see watchdog/install.sh.
 #
-# A pass is skipped, without calling the model, when no task is open and no
-# Worker run is active. Passes never overlap.
+# A pass is skipped, without calling the model, when no Worker run is active
+# and every open task is waiting on the user or on hold. Passes never overlap.
 set -euo pipefail
 export PATH="/usr/local/bin:/usr/bin:/bin:$HOME/.local/bin:$PATH"
 
@@ -16,10 +16,20 @@ flock -n 9 || exit 0
 # While the hub is paused, nothing is expected to progress.
 [ -f .paused ] && exit 0
 
-open_tasks=0
-[ -f INDEX.md ] && open_tasks=$(grep -c '^- ' INDEX.md || true)
-active_runs=$(grep -l '^running' .runs/*/status 2>/dev/null | wc -l || true)
-if [ "$open_tasks" -eq 0 ] && [ "$active_runs" -eq 0 ]; then
+# A task counts as in progress unless its task file says it waits on the user
+# or is on hold. A line whose task file is missing or unreadable counts too.
+in_progress=0
+if [ -f INDEX.md ]; then
+  while IFS= read -r f; do
+    s=$(grep -m1 '^- Status:' "$f" 2>/dev/null | sed 's/^- Status:[[:space:]]*//' || true)
+    case "$s" in
+      waiting*|"on hold"*) ;;
+      *) in_progress=$((in_progress + 1)) ;;
+    esac
+  done < <(grep '^- ' INDEX.md | grep -o '(tasks/[^)]*)' | tr -d '()' || true)
+fi
+active_runs=$(grep -lE '^(running|queued|retrying)' .runs/*/status 2>/dev/null | wc -l || true)
+if [ "$in_progress" -eq 0 ] && [ "$active_runs" -eq 0 ]; then
   exit 0
 fi
 

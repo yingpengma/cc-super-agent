@@ -75,7 +75,7 @@ A Worker that finishes notifies the Router. A Worker that never finishes does no
 It follows the design's external control loop:
 
 - **Independent of the Router.** It is a separate `claude -p` process started by the system's cron, not by the Router. It keeps running when the Router session is closed, and can notice when the Router itself has stopped relaying results.
-- **Driven by a timer.** `watchdog/install.sh` installs a cron entry that runs `watchdog/run.sh` every 15 minutes. A pass is skipped without calling the model when no task is open and no Worker is running. Passes never overlap, and leave no session behind (`--no-session-persistence`), so they do not crowd the user's session list in this directory.
+- **Driven by a timer.** `watchdog/install.sh` installs a cron entry that runs `watchdog/run.sh` every 15 minutes. A pass is skipped without calling the model when no Worker is running and every open task is waiting on the user or on hold, because then nothing is expected to progress. Passes never overlap, and leave no session behind (`--no-session-persistence`), so they do not crowd the user's session list in this directory.
 - **Observes, diagnoses, reports.** Each pass reads the work records, the run state in `.runs/` and each Worker's session transcript, and judges whether the work is still progressing. Its instructions are in `watchdog/prompt.md`.
 - **Never intervenes.** It does not stop, restart, message or redirect a Worker. It records a finding in the task's log, marks the task's line in `INDEX.md` with ⚠, and sends the Router one short message if the Router is running. It does not repeat an alert that has not changed.
 
