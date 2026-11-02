@@ -111,7 +111,15 @@ function itemsFrom(o) {
     const blocks = (o.message && o.message.content) || [];
     blocks.forEach((b, i) => {
       if (b.type === 'text' && b.text.trim()) out.push({ id: `${o.uuid}:${i}`, role: 'assistant', ts, text: b.text });
-      else if (b.type === 'tool_use') out.push({ id: `${o.uuid}:${i}`, role: 'tool', ts, name: b.name, text: toolSummary(b.name, b.input) });
+      else if (b.type === 'tool_use') {
+        const it = { id: `${o.uuid}:${i}`, role: 'tool', ts, name: b.name, text: toolSummary(b.name, b.input) };
+        // A message the Router sent to a live session: shown in the work group.
+        if (/^Send(Message|ToProject)/.test(b.name) && b.input) {
+          const inp = b.input;
+          it.send = { to: String(inp.to || inp.project || inp.name || inp.target || '?'), text: String(inp.message || inp.text || inp.prompt || '') };
+        }
+        out.push(it);
+      }
     });
   }
   return out;
@@ -200,6 +208,111 @@ function runs() {
     try { pending = fs.readdirSync(path.join(dir, id, 'pending')).length; } catch {}
     return { id, status: f('status'), project: f('project'), started: f('started'), ended: f('ended'), pending };
   }).filter((r) => r.status).sort((a, b) => (b.started || '').localeCompare(a.started || ''));
+}
+
+// ---------- work group: Router <-> Workers ----------
+// Each Worker's session transcript holds every brief it received (its user
+// turns) and everything it said. The last text of a round is its report to
+// the Router; earlier texts in the round are progress notes.
+const workerCache = new Map(); // transcript path -> { size, items }
+
+function workerTranscript(id) {
+  const dir = rel('.runs', id);
+  const known = (read(path.join(dir, 'transcript')) || '').trim();
+  if (known && fs.existsSync(known)) return known;
+  return transcriptPath((read(path.join(dir, 'session-id')) || '').trim());
+}
+
+function parseWorker(id, file) {
+  let size = 0;
+  try { size = fs.statSync(file).size; } catch { return []; }
+  const hit = workerCache.get(file);
+  if (hit && hit.size === size) return hit.items;
+  const items = [];
+  let round = null;
+  const close = () => {
+    if (!round) return;
+    const texts = round.texts;
+    texts.forEach((t, i) => items.push({ ...t, kind: i === texts.length - 1 ? 'report' : 'progress' }));
+    round = null;
+  };
+  const text = read(file) || '';
+  for (const line of text.split('\n')) {
+    if (!line.trim()) continue;
+    let o; try { o = JSON.parse(line); } catch { continue; }
+    if (o.isSidechain || o.isMeta || o.isCompactSummary) continue;
+    const content = o.message && o.message.content;
+    if (o.type === 'user') {
+      if (Array.isArray(content) && content.some((b) => b.type === 'tool_result')) continue;
+      const t = textOf(content).trim();
+      if (!t || /^<(system-reminder|local-command|command-|bash-|task-notification)/.test(t)) continue;
+      close();
+      items.push({ id: o.uuid, ts: o.timestamp, task: id, kind: 'brief', from: 'router', to: id, text: t });
+      round = { texts: [] };
+    } else if (o.type === 'assistant' && Array.isArray(content)) {
+      content.forEach((b, i) => {
+        if (b.type === 'text' && b.text.trim()) {
+          if (!round) round = { texts: [] };
+          round.texts.push({ id: `${o.uuid}:${i}`, ts: o.timestamp, task: id, from: id, to: 'router', text: b.text.trim() });
+        }
+      });
+    }
+  }
+  // The last round may still be running: its texts so far are progress.
+  if (round) {
+    const status = (read(rel('.runs', id, 'status')) || '').trim();
+    if (/^(running|retrying|queued)/.test(status)) {
+      round.texts.forEach((t) => items.push({ ...t, kind: 'progress' }));
+      round = null;
+    } else close();
+  }
+  workerCache.set(file, { size, items });
+  return items;
+}
+
+function taskTitles() {
+  const out = {};
+  let names = [];
+  try { names = fs.readdirSync(rel('tasks')); } catch { return out; }
+  for (const n of names) {
+    const m = n.match(/^(\d+)-/);
+    if (!m) continue;
+    const head = ((read(rel('tasks', n)) || '').match(/^#\s+\d+\s+(.+)$/m) || [])[1];
+    out[m[1]] = { title: head || n.replace(/^\d+-|\.md$/g, ''), file: `tasks/${n}` };
+  }
+  return out;
+}
+
+function feed() {
+  const items = [];
+  let ids = [];
+  try { ids = fs.readdirSync(rel('.runs')); } catch {}
+  const sources = [];
+  for (const id of ids) {
+    const file = workerTranscript(id);
+    if (!file) continue;
+    sources.push(file);
+    for (const it of parseWorker(id, file)) items.push({ ...it, src: file });
+  }
+  refreshChat();
+  for (const it of chat.items) {
+    if (it.send) items.push({ id: it.id, ts: it.ts, task: null, kind: 'send', from: 'router', to: it.send.to, text: it.send.text, src: chat.file });
+  }
+  items.sort((a, b) => (a.ts || '').localeCompare(b.ts || ''));
+  return { items: items.slice(-600), tasks: taskTitles() };
+}
+
+function feedSignature() {
+  let sig = '';
+  let ids = [];
+  try { ids = fs.readdirSync(rel('.runs')); } catch {}
+  for (const id of ids) {
+    const f = workerTranscript(id);
+    let size = 0;
+    try { size = f ? fs.statSync(f).size : 0; } catch {}
+    sig += `${id}:${size}:${(read(rel('.runs', id, 'status')) || '').trim()};`;
+  }
+  return sig + chat.items.filter((i) => i.send).length;
 }
 
 // Every task file not listed in INDEX.md: work that has ended. INDEX.md only
@@ -305,6 +418,8 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { items: chat.items.slice(-limit), seq: chat.seq });
     }
 
+    if (req.method === 'GET' && p === '/api/feed') return send(res, 200, feed());
+
     if (req.method === 'GET' && p === '/api/task') {
       const file = url.searchParams.get('file') || '';
       if (!/^tasks\/[\w.-]+\.md$/.test(file)) return send(res, 400, { error: 'bad file' });
@@ -354,15 +469,24 @@ const server = http.createServer(async (req, res) => {
 });
 
 // Push changes to open pages.
+// Pushes go by sequence number, not by what the last read returned, because
+// an HTTP request may read the transcript between two ticks.
 let lastState = '';
+let pushedSeq = -1;
+let lastFeed = '';
 async function tick() {
   if (!clients.size) return;
-  const fresh = refreshChat();
+  refreshChat();
+  if (pushedSeq < 0) pushedSeq = chat.seq;
+  const fresh = chat.items.filter((i) => i.seq > pushedSeq);
+  pushedSeq = chat.seq;
   const s = await state();
   const sig = JSON.stringify(s);
   const msgs = [];
   if (fresh.length) msgs.push(`event: chat\ndata: ${JSON.stringify({ items: fresh, seq: chat.seq })}\n\n`);
   if (sig !== lastState) { lastState = sig; msgs.push(`event: state\ndata: ${sig}\n\n`); }
+  const fsig = feedSignature();
+  if (fsig !== lastFeed) { lastFeed = fsig; msgs.push(`event: feed\ndata: ${JSON.stringify(feed())}\n\n`); }
   if (!msgs.length) msgs.push(': ping\n\n');
   for (const c of clients) for (const m of msgs) c.write(m);
 }

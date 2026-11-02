@@ -42,7 +42,7 @@ You keep **one** conversation. Behind it, a Router hands each piece of work to i
 - ♾️ **Always on.** On a server, the Router lives in tmux under systemd, resumes its own session after any restart, and picks up from its records.
 - 🧠 **A memory you can read.** Your preferences go into Claude Code's memory. Your work goes into a three-layer Markdown wiki: an index, one file per task, one per project. The Router follows links one hop at a time instead of loading everything.
 - 🛑 **You stay in control.** "Hold this" survives Worker restarts until you lift it. `bin/pause` stops everything at once. Workers never get permissions you did not grant.
-- 🌐 **In the terminal or in the browser.** Talk to the Router in its terminal, or open the Web UI: a chat page with your work in flight beside it, and buttons for the Router's permission prompts. Both are the same conversation.
+- 🌐 **In the terminal or in the browser.** Talk to the Router in its terminal, or open the Web UI: your chat with the Router on one side, and on the other a work group showing every message between the Router and its Workers, where you can flag any message as not right and send it back to the Router. Both are the same conversation.
 - 🔒 **Private by default.** The repository tracks a whitelist of framework files. Your tasks, projects, logs and memory never leave your machine.
 
 ## How it works

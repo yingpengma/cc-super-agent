@@ -18,6 +18,26 @@ const STRINGS = {
     hint: 'Enter to send · Shift+Enter for a new line · the terminal shares this conversation',
     inFlight: 'Tasks',
     groupOpen: 'In flight',
+    group: 'Work group',
+    groupSub: (w, m) => `Router and ${w} Worker${w === 1 ? '' : 's'} · ${m} messages`,
+    all: 'All',
+    flag: 'Not right',
+    more: 'Show all',
+    less: 'Show less',
+    stepsOf: (id, n) => `${n} progress note${n === 1 ? '' : 's'} from Worker ${id}`,
+    kindBrief: 'Brief',
+    kindReport: 'Report',
+    kindSend: 'Message',
+    workerName: (id) => `Worker ${id}`,
+    noFeed: 'No messages between the Router and its Workers yet.',
+    noFeedTask: 'No messages for this task yet.',
+    viewTask: 'Task details',
+    quoting: 'Quoting',
+    removeQuote: 'Remove quote',
+    quotePlaceholder: 'Say what is not right…',
+    quoteIntro: 'About this message in the work group, which I think is not right:',
+    quoteWhere: (desc, when, src) => `(${desc}, ${when}; full text in ${src})`,
+    quoteDefault: '(Please check this message.)',
     groupEnded: 'Ended',
     workers: 'Workers',
     terminalNote: 'What the Router’s terminal shows right now. Use the keys below to answer a prompt.',
@@ -68,6 +88,26 @@ const STRINGS = {
     hint: 'Enter 发送 · Shift+Enter 换行 · 终端和网页是同一个对话',
     inFlight: '任务',
     groupOpen: '进行中',
+    group: '工作群',
+    groupSub: (w, m) => `Router 与 ${w} 个 Worker · ${m} 条消息`,
+    all: '全部',
+    flag: '不对',
+    more: '展开全文',
+    less: '收起',
+    stepsOf: (id, n) => `Worker ${id} 的 ${n} 条进展`,
+    kindBrief: '任务说明',
+    kindReport: '回报',
+    kindSend: '消息',
+    workerName: (id) => `Worker ${id}`,
+    noFeed: 'Router 和 Worker 之间还没有往来消息。',
+    noFeedTask: '这个任务还没有往来消息。',
+    viewTask: '查看任务详情',
+    quoting: '引用',
+    removeQuote: '取消引用',
+    quotePlaceholder: '说说哪里不对…',
+    quoteIntro: '关于工作群里的这条消息，我觉得不对：',
+    quoteWhere: (desc, when, src) => `（${desc}，${when}；全文在 ${src}）`,
+    quoteDefault: '（请先核对这条消息。）',
     groupEnded: '已结束',
     workers: 'Worker',
     terminalNote: 'Router 终端此刻的画面。需要回答提示时，用下面的按键。',
@@ -387,61 +427,167 @@ function renderState(s) {
   // alerts
   $('alerts').replaceChildren(...s.index.alerts.map((a) => h('p', { class: 'alert' }, icon('alert'), h('span', {}, a))));
 
-  // tasks
-  const tasks = $('tasks');
-  const past = s.past || [];
-  $('count-tasks').textContent = s.index.tasks.length || '';
-  const openRows = s.index.tasks.map((t) => h('li', {},
-    h('button', { class: 'row', onclick: () => openTask(t) },
-      h('div', {},
-        h('div', { class: 'name' }, dot(taskDot(t)), h('span', {}, t.title)),
-        h('div', { class: `sub${t.warn ? ' warn' : ''}` }, [t.id, t.project, t.note || taskStatusText(t)].filter(Boolean).join(' · ')),
-      ),
-      icon('chev'),
-    )));
-  const pastRows = past.map((t) => h('li', { class: 'past' },
-    h('button', { class: 'row', title: t.outcome || '', onclick: () => openTask(t) },
-      h('div', {},
-        h('div', { class: 'name' }, dot(/^dropped/i.test(t.status) ? '' : 'done'), h('span', {}, t.title)),
-        h('div', { class: 'sub' }, [t.id, t.project, taskStatusText(t)].filter(Boolean).join(' · ')),
-      ),
-      h('span', { class: 'meta' }, ago(t.updated)),
-    )));
-  tasks.replaceChildren(
-    h('li', { class: 'group' }, T.groupOpen),
-    ...(openRows.length ? openRows : [h('li', {}, h('p', { class: 'none' }, T.noTasks))]),
-    ...(pastRows.length ? [h('li', { class: 'group' }, T.groupEnded), ...pastRows] : []),
-  );
-
-  // runs
-  const runs = s.runs.map((x) => ({ ...x, info: runInfo(x) }));
-  const shown = [...runs.filter((x) => x.info.active), ...runs.filter((x) => !x.info.active).slice(0, 8)];
-  $('count-runs').textContent = runs.filter((x) => x.info.active).length || '';
-  const runsEl = $('runs');
-  if (!shown.length) runsEl.replaceChildren(h('li', {}, h('p', { class: 'none' }, T.noRuns)));
-  else runsEl.replaceChildren(...shown.map((x) => h('li', { class: x.info.active ? '' : 'past' },
-    h('div', { class: 'row', title: x.project },
-      h('div', {},
-        h('div', { class: 'name' }, dot(x.info.dot), h('span', {}, x.project.split('/').pop() || x.project)),
-        h('div', { class: 'sub' }, [x.id, x.info.text, x.pending ? T.pending(x.pending) : ''].filter(Boolean).join(' · ')),
-      ),
-      h('span', { class: 'meta' }, ago(x.info.active ? x.started : (x.ended || x.started))),
-    ))));
-
   // pause
   const pa = $('pause-area');
   if (s.paused) {
-    pa.replaceChildren(
-      h('p', { class: 'pause-note' }, T.pausedSince(s.paused.replace(/^\S+\s*/, '') || s.paused)),
-      h('button', { class: 'foot-btn', onclick: resumeHub }, icon('play'), h('span', {}, T.resume)),
-    );
+    pa.replaceChildren(h('button', { class: 'pause-btn on', title: T.pausedSince(s.paused.replace(/^\S+\s*/, '') || s.paused), onclick: resumeHub }, icon('play'), h('span', {}, T.resume)));
   } else {
-    pa.replaceChildren(h('button', { class: 'foot-btn', onclick: pauseHub }, icon('pause'), h('span', {}, T.pause)));
+    pa.replaceChildren(h('button', { class: 'pause-btn', onclick: pauseHub }, icon('pause'), h('span', {}, T.pause)));
   }
 
+  renderChips();
   renderTerminal();
   placeThinking();
 }
+
+// ---------- work group ----------
+let feedData = { items: [], tasks: {} };
+let filter = null;          // task id, or null for all
+const expanded = new Set(); // post ids shown in full
+const openSteps = new Set(); // progress groups left open
+let quoteItem = null;
+const feedScroll = $('feed-scroll');
+
+// Every task the page knows of: open ones first, then ended ones, then any
+// task that only appears in the feed.
+function allTasks() {
+  const s = current || { index: { tasks: [] }, past: [], runs: [] };
+  const out = [];
+  const seen = new Set();
+  for (const t of s.index.tasks) { out.push({ ...t, dot: taskDot(t) }); seen.add(t.id); }
+  for (const t of s.past || []) { if (!seen.has(t.id)) { out.push({ ...t, dot: /^dropped/i.test(t.status) ? '' : 'done' }); seen.add(t.id); } }
+  for (const [id, t] of Object.entries(feedData.tasks || {})) {
+    if (!seen.has(id) && feedData.items.some((i) => i.task === id)) { out.push({ id, title: t.title, file: t.file, dot: '' }); seen.add(id); }
+  }
+  // A running Worker overrides the task's dot.
+  for (const r of s.runs || []) {
+    const t = out.find((x) => x.id === r.id);
+    if (t && /^running/.test(r.status)) t.dot = 'go pulse';
+  }
+  return out;
+}
+
+function renderChips() {
+  const tasks = allTasks();
+  const chip = (id, kids, label) => h('button', { class: 'chip', 'aria-pressed': String(filter === id), title: label, onclick: () => { filter = id; renderChips(); renderFeed(true); } }, ...kids);
+  $('chips').replaceChildren(
+    chip(null, [h('span', {}, T.all)], T.all),
+    ...tasks.map((t) => chip(t.id, [dot(t.dot), h('span', { class: 'n' }, t.id), h('span', {}, t.title)], `${t.id} ${t.title}`)),
+  );
+  const bar = $('task-bar');
+  const t = tasks.find((x) => x.id === filter);
+  if (t) {
+    bar.replaceChildren(dot(t.dot), h('span', {}, [t.project, t.note || taskStatusText(t)].filter(Boolean).join(' · ') || t.title),
+      t.file ? h('button', { class: 'link', onclick: () => openTask(t) }, T.viewTask) : null);
+    bar.hidden = false;
+  } else bar.hidden = true;
+}
+
+function who(id) { return id === 'router' ? 'Router' : (/^\d+$/.test(id) ? T.workerName(id) : id); }
+function kindLabel(k) { return { brief: T.kindBrief, report: T.kindReport, send: T.kindSend }[k] || ''; }
+function taskTitle(id) { return (feedData.tasks[id] && feedData.tasks[id].title) || ''; }
+
+function postEl(it) {
+  const long = it.text.length > 600 || it.text.split('\n').length > 12;
+  const open = expanded.has(it.id);
+  const body = h('div', { class: `post-body prose${long && !open ? ' clamped' : ''}` });
+  body.innerHTML = markdown(it.text);
+  const isRouter = it.from === 'router';
+  return h('article', { class: `post ${it.kind}${quoteItem && quoteItem.id === it.id ? ' flagged' : ''}`, 'data-id': it.id },
+    h('div', { class: `avatar ${isRouter ? 'router' : 'worker'}` }, isRouter ? 'R' : it.from),
+    h('div', {},
+      h('div', { class: 'post-head' },
+        h('b', {}, who(it.from)), h('span', { class: 'to' }, `→ ${who(it.to)}`),
+        h('span', { class: 'kind' }, kindLabel(it.kind)),
+        it.task && !filter ? h('span', { class: 'task' }, taskTitle(it.task)) : null,
+        h('time', { datetime: it.ts, title: new Date(it.ts).toLocaleString() }, clock(it.ts)),
+      ),
+      h('div', { class: 'post-card' }, body,
+        h('div', { class: 'post-foot' },
+          long ? h('button', { class: 'more', onclick: () => { open ? expanded.delete(it.id) : expanded.add(it.id); renderFeed(); } }, open ? T.less : T.more) : null,
+          h('button', { class: 'flag', title: T.flag, onclick: () => setQuote(it) }, icon('flag'), h('span', {}, T.flag)),
+        ),
+      ),
+    ),
+  );
+}
+
+function steps(group) {
+  const key = group[0].id;
+  const d = h('details', { class: 'steps', open: openSteps.has(key) || undefined },
+    h('summary', {}, dot(), h('span', {}, T.stepsOf(group[0].from, group.length))),
+    h('ol', {}, ...group.map((x) => h('li', {}, h('time', { datetime: x.ts }, clock(x.ts)), x.text))));
+  d.addEventListener('toggle', () => { d.open ? openSteps.add(key) : openSteps.delete(key); });
+  return d;
+}
+
+function renderFeed(jump) {
+  const stick = jump || feedScroll.scrollHeight - feedScroll.scrollTop - feedScroll.clientHeight < 120;
+  const items = feedData.items.filter((i) => !filter || i.task === filter);
+  const nodes = [];
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    if (it.kind === 'progress') {
+      const g = [it];
+      while (i + 1 < items.length && items[i + 1].kind === 'progress' && items[i + 1].from === it.from) g.push(items[++i]);
+      nodes.push(steps(g));
+    } else nodes.push(postEl(it));
+  }
+  $('feed').replaceChildren(...(nodes.length ? nodes : [h('p', { class: 'none' }, filter ? T.noFeedTask : T.noFeed)]));
+  const workers = new Set(feedData.items.map((i) => i.task).filter(Boolean)).size;
+  $('group-sub').textContent = T.groupSub(workers, feedData.items.filter((i) => i.kind !== 'progress').length);
+  if (stick) feedScroll.scrollTop = feedScroll.scrollHeight;
+}
+
+function setFeed(data) {
+  feedData = data;
+  renderFeed();
+  renderChips();
+}
+
+// ---------- quoting a work-group message into the Router chat ----------
+function quoteDesc(it) { return `${who(it.from)} → ${who(it.to)} · ${kindLabel(it.kind)}`; }
+function setQuote(it) {
+  quoteItem = it;
+  const q = $('quote');
+  if (!it) {
+    q.hidden = true;
+    input.placeholder = T.inputPlaceholder;
+  } else {
+    q.replaceChildren(
+      h('div', {},
+        h('div', { class: 'q-head' }, icon('quote'), h('span', {}, `${T.quoting} · ${quoteDesc(it)} · ${clock(it.ts)}`)),
+        h('div', { class: 'q-text' }, it.text.replace(/\s+/g, ' ').slice(0, 300)),
+      ),
+      h('button', { type: 'button', class: 'icon-btn', title: T.removeQuote, 'aria-label': T.removeQuote, onclick: () => setQuote(null) }, icon('x')),
+    );
+    q.hidden = false;
+    input.placeholder = T.quotePlaceholder;
+    showPane('chat');
+    showView('chat');
+    input.focus();
+  }
+  renderFeed();
+}
+function quotedText(it, note) {
+  const lines = it.text.split('\n');
+  let body = lines.slice(0, 12).join('\n');
+  if (body.length > 800) body = body.slice(0, 800);
+  const cutShort = body.length < it.text.length;
+  const quoted = body.split('\n').map((l) => `> ${l}`).join('\n') + (cutShort ? '\n> …' : '');
+  const when = new Date(it.ts).toLocaleString();
+  const where = T.quoteWhere(`${quoteDesc(it)}${it.task ? ` (${it.task} ${taskTitle(it.task)})` : ''}`, when, it.src || '?');
+  return `${T.quoteIntro}\n${where}\n${quoted}\n\n${note.trim() || T.quoteDefault}`;
+}
+
+// ---------- panes on narrow screens ----------
+function showPane(name) {
+  $('app').classList.toggle('show-chat', name === 'chat');
+  $('app').classList.toggle('show-group', name === 'group');
+  document.querySelectorAll('[data-pane]').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.pane === name)));
+  if (name === 'group') renderFeed(true);
+}
+document.querySelectorAll('[data-pane]').forEach((b) => b.addEventListener('click', () => showPane(b.dataset.pane)));
 
 // ---------- terminal view ----------
 function renderTerminal() {
@@ -454,19 +600,15 @@ function renderTerminal() {
 $('term-keys').replaceChildren(...['1', '2', '3', 'up', 'down', 'esc', 'enter'].map((k) =>
   h('button', { class: `btn${k === 'enter' ? ' primary' : ''}`, onclick: () => pressKey(k) }, T.keys[k])));
 
-document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => {
-  const v = b.dataset.view;
-  document.querySelectorAll('[data-view]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+function showView(v) {
+  document.querySelectorAll('[data-view]').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.view === v)));
+  if ($('view-chat').hidden === (v !== 'chat') && $('view-term').hidden === (v !== 'term')) return;
   $('view-chat').hidden = v !== 'chat';
   $('view-term').hidden = v !== 'term';
   if (v === 'term') { renderTerminal(); const sc = $('term-screen'); sc.scrollTop = sc.scrollHeight; }
   else { toBottom(); input.focus(); }
-}));
-document.querySelectorAll('[data-side-tab]').forEach((b) => b.addEventListener('click', () => {
-  document.querySelectorAll('[data-side-tab]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
-  $('tasks').hidden = b.dataset.sideTab !== 'tasks';
-  $('runs').hidden = b.dataset.sideTab !== 'runs';
-}));
+}
+document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
 
 // ---------- actions ----------
 async function pressKey(key) {
@@ -513,33 +655,27 @@ input.addEventListener('keydown', (e) => {
 });
 $('composer').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const text = input.value;
-  if (!text.trim() || $('send').disabled) return;
+  const note = input.value;
+  if ((!note.trim() && !quoteItem) || $('send').disabled) return;
+  const quoted = quoteItem;
+  const text = quoted ? quotedText(quoted, note) : note;
   const el = h('div', { class: 'msg user pending', 'data-text': text.trim() }, h('div', { class: 'bubble' }, text));
   messages.querySelector('.empty')?.remove();
   messages.append(el);
   pendingEls.push(el);
   input.value = ''; grow(); toBottom();
+  if (quoted) setQuote(null);
   try {
     await post('/api/send', { text });
   } catch (err) {
     el.remove(); pendingEls = pendingEls.filter((p) => p !== el);
-    input.value = text; grow();
+    input.value = note; grow();
+    if (quoted) setQuote(quoted);
     const msg = err.data && err.data.error === 'router-down' ? T.sendFailed : T.sendError(err.message);
     messages.append(h('div', { class: 'line' }, dot('stop'), h('span', {}, msg)));
     toBottom();
   }
 });
-
-// sidebar drawer on narrow screens
-function setPanel(open) {
-  $('side').classList.toggle('open', open);
-  $('scrim').hidden = !open;
-  $('panel-toggle').setAttribute('aria-expanded', String(open));
-}
-$('panel-toggle').addEventListener('click', () => setPanel(!$('side').classList.contains('open')));
-$('panel-close').addEventListener('click', () => setPanel(false));
-$('scrim').addEventListener('click', () => setPanel(false));
 
 // ---------- live updates ----------
 async function refreshState() {
@@ -552,6 +688,7 @@ function connect() {
   source = new EventSource(`/api/events?t=${encodeURIComponent(token)}`);
   source.addEventListener('chat', (e) => addItems(JSON.parse(e.data).items));
   source.addEventListener('state', (e) => renderState(JSON.parse(e.data)));
+  source.addEventListener('feed', (e) => setFeed(JSON.parse(e.data)));
   source.addEventListener('open', () => { lostEl?.remove(); lostEl = null; resync(); });
   source.addEventListener('error', () => {
     if (!lostEl) { lostEl = h('div', { class: 'line' }, dot('wait pulse'), h('span', {}, T.lost)); messages.append(lostEl); }
@@ -562,6 +699,7 @@ async function resync() {
     const c = await api('/api/chat');
     if (c.seq < lastSeq) { messages.replaceChildren(); lastSeq = 0; group = null; }
     addItems(c.items, { initial: lastSeq === 0 });
+    setFeed(await api('/api/feed'));
   } catch {}
 }
 
@@ -573,6 +711,8 @@ async function start() {
     renderState(s);
     const c = await api('/api/chat');
     addItems(c.items, { initial: true });
+    setFeed(await api('/api/feed'));
+    renderFeed(true);
     connect();
     grow();
     input.focus();
