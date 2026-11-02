@@ -34,14 +34,22 @@ An entry must change what the twin would do. Evidence that changes no decision i
 
 The human-limit test matters: a request such as "show me one item at a time" says how the user can take in information, not how the decision should be made. Copying it into the twin would make the twin as slow as the human without any benefit.
 
-### 3. Write each entry with its evidence
+### 3. Write each entry
+
+The twin and its evidence live in different files.
+
+**In `twin/model.md`, write the mind, not the quotes.** Write how the user thinks, in the user's first person: what they look at first, what makes them uneasy, how they weigh one thing against another, where they draw a line and why. An agent that reads it should be able to make the call the user would make in a situation the user never met. A list of the user's sayings does not do that.
+
+**Write for a reader with no context.** The twin is read by a new session that knows nothing of the conversations it came from. Every sentence must make sense on first reading to that reader. A phrase that only points at an event ("as with the old data") means nothing to it: describe the situation in full, as a concrete example anyone can follow, or leave it out. Before writing, read the entry as that reader would.
+
+**Write the reasoning, not only the surface.** "Kept folder X" is an event; "keeps what might still be needed, and deletes wholesale what is known to be obsolete, whether or not it can be recovered" is a rule; why the user holds it is what lets the twin extend it.
+
+**In `twin/review.md`, keep the evidence** for each entry:
 
 - the user's words, verbatim, with date and source transcript;
 - what the agent proposed or did that the user overrode;
 - counter-evidence, only if it changes what the twin would do;
 - confidence: one event is a hypothesis; a pattern across events is a rule.
-
-Write the reasoning behind a rule, not only its surface. "Kept folder X" is an event; "keeps what might still be needed, and deletes wholesale what is known to be obsolete, whether or not it can be recovered" is a rule.
 
 ### 4. Review with the user
 
