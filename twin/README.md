@@ -2,6 +2,8 @@
 
 The hub is also where a digital twin of its user is built: a model precise enough that, while the user is away, an agent can make the calls the user would make, and knows which calls only the user can make. The twin is refined for as long as the hub runs.
 
+The twin is the user's judgment carried by an agent. It keeps the user's experience, taste and trade-offs, and keeps the agent's own strengths: it reads everything at once, holds a large context and does not tire. It must not inherit the user's human limits. Rules that exist only because a person can take in little at a time apply when an agent talks to the user, and live with the other rules for talking to the user, never in the twin.
+
 This file is the method. It is framework and holds nothing about a particular user. The twin itself, and every record about how it was built, is personal data and stays local.
 
 ## What the twin holds
@@ -28,7 +30,7 @@ An entry must change what the twin would do. Evidence that changes no decision i
 | --- | --- | --- |
 | Judgment | The user's own values or trade-offs, stable enough to predict | A rule the twin follows, with the reasoning behind it |
 | Private knowledge | Depends on something only the user knows, such as whether a project is still needed | An "ask the user" point: when to ask, what to ask, and what to prepare so the user can answer at a glance |
-| Human limit | An adaptation to the user's own limits: attention, reading speed, time | A rule for agents talking to the human. The twin is not bound by it when it decides on its own; it can weigh everything at once |
+| Human limit | An adaptation to the user's own limits: attention, reading speed, time | Nothing in the twin. If no rule for talking to the user covers it yet, add it there (for example the global `~/.claude/CLAUDE.md`) |
 | Already covered | An existing rule already says it | Where it is covered. Nothing new |
 | Passing purpose | The request served a goal of that moment, not a lasting preference, such as keeping records because they are material for the twin | Nothing |
 
