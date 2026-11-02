@@ -18,6 +18,8 @@ const STRINGS = {
     hint: 'Enter to send · Shift+Enter for a new line · the terminal shares this conversation',
     inFlight: 'Tasks',
     groupOpen: 'In flight',
+    collapse: 'Collapse the sidebar',
+    expand: 'Expand the sidebar',
     group: 'Work group',
     groupSub: (w, m) => `Router and ${w} Worker${w === 1 ? '' : 's'} · ${m} messages`,
     all: 'All',
@@ -88,6 +90,8 @@ const STRINGS = {
     hint: 'Enter 发送 · Shift+Enter 换行 · 终端和网页是同一个对话',
     inFlight: '任务',
     groupOpen: '进行中',
+    collapse: '收起侧边栏',
+    expand: '展开侧边栏',
     group: '工作群',
     groupSub: (w, m) => `Router 与 ${w} 个 Worker · ${m} 条消息`,
     all: '全部',
@@ -436,6 +440,7 @@ function renderState(s) {
   }
 
   renderChips();
+  renderSide();
   renderTerminal();
   placeThinking();
 }
@@ -467,9 +472,91 @@ function allTasks() {
   return out;
 }
 
+// ---------- sidebar ----------
+function selectTask(id) {
+  filter = id;
+  renderChips();
+  renderSide();
+  renderFeed(true);
+  if (window.matchMedia('(max-width: 1000px)').matches) showPane('group');
+}
+
+function renderSide() {
+  if (!current) return;
+  const s = current;
+  const past = s.past || [];
+  const runningIds = new Set(s.runs.filter((r) => /^running/.test(r.status)).map((r) => r.id));
+  const sel = (id) => String(filter === id);
+
+  // tasks: open, then ended
+  $('count-tasks').textContent = s.index.tasks.length || '';
+  const openRows = s.index.tasks.map((t) => h('li', {},
+    h('button', { class: 'row', 'aria-current': sel(t.id), onclick: () => selectTask(filter === t.id ? null : t.id) },
+      h('div', {},
+        h('div', { class: 'name' }, dot(runningIds.has(t.id) ? 'go pulse' : taskDot(t)), h('span', {}, t.title)),
+        h('div', { class: `sub${t.warn ? ' warn' : ''}` }, [t.id, t.project, t.note || taskStatusText(t)].filter(Boolean).join(' · ')),
+      ),
+      icon('chev'),
+    )));
+  const pastRows = past.map((t) => h('li', { class: 'past' },
+    h('button', { class: 'row', 'aria-current': sel(t.id), title: t.outcome || '', onclick: () => selectTask(filter === t.id ? null : t.id) },
+      h('div', {},
+        h('div', { class: 'name' }, dot(/^dropped/i.test(t.status) ? '' : 'done'), h('span', {}, t.title)),
+        h('div', { class: 'sub' }, [t.id, t.project, taskStatusText(t)].filter(Boolean).join(' · ')),
+      ),
+      h('span', { class: 'meta' }, ago(t.updated)),
+    )));
+  $('tasks').replaceChildren(
+    h('li', { class: 'group' }, T.groupOpen),
+    ...(openRows.length ? openRows : [h('li', {}, h('p', { class: 'none' }, T.noTasks))]),
+    ...(pastRows.length ? [h('li', { class: 'group' }, T.groupEnded), ...pastRows] : []),
+  );
+
+  // Worker runs
+  const runs = s.runs.map((x) => ({ ...x, info: runInfo(x) }));
+  const shown = [...runs.filter((x) => x.info.active), ...runs.filter((x) => !x.info.active).slice(0, 8)];
+  $('count-runs').textContent = runs.filter((x) => x.info.active).length || '';
+  $('runs').replaceChildren(...(shown.length ? shown.map((x) => h('li', { class: x.info.active ? '' : 'past' },
+    h('button', { class: 'row', title: x.project, 'aria-current': sel(x.id), onclick: () => selectTask(filter === x.id ? null : x.id) },
+      h('div', {},
+        h('div', { class: 'name' }, dot(x.info.dot), h('span', {}, x.project.split('/').pop() || x.project)),
+        h('div', { class: 'sub' }, [x.id, x.info.text, x.pending ? T.pending(x.pending) : ''].filter(Boolean).join(' · ')),
+      ),
+      h('span', { class: 'meta' }, ago(x.info.active ? x.started : (x.ended || x.started))),
+    ))) : [h('li', {}, h('p', { class: 'none' }, T.noRuns))]));
+
+  // collapsed rail: one button per task, status dot in the corner
+  const railBtn = (t, d) => h('li', {}, h('button', { title: `${t.id} ${t.title}`, 'aria-label': `${t.id} ${t.title}`, 'aria-current': sel(t.id), onclick: () => selectTask(filter === t.id ? null : t.id) }, t.id, dot(d)));
+  $('rail').replaceChildren(
+    ...s.index.tasks.map((t) => railBtn(t, runningIds.has(t.id) ? 'go pulse' : taskDot(t))),
+    ...(past.length && s.index.tasks.length ? [h('li', { class: 'sep', 'aria-hidden': 'true' })] : []),
+    ...past.map((t) => railBtn(t, /^dropped/i.test(t.status) ? '' : 'done')),
+  );
+}
+
+document.querySelectorAll('[data-side-tab]').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-side-tab]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+  $('tasks').hidden = b.dataset.sideTab !== 'tasks';
+  $('runs').hidden = b.dataset.sideTab !== 'runs';
+}));
+
+function setCollapsed(on) {
+  $('app').classList.toggle('collapsed', on);
+  const b = $('side-toggle');
+  b.setAttribute('aria-expanded', String(!on));
+  b.title = on ? T.expand : T.collapse;
+  b.setAttribute('aria-label', b.title);
+  localStorage.setItem('ccsa-side', on ? 'collapsed' : 'open');
+}
+$('side-toggle').addEventListener('click', () => setCollapsed(!$('app').classList.contains('collapsed')));
+{
+  const saved = localStorage.getItem('ccsa-side');
+  setCollapsed(saved ? saved === 'collapsed' : window.innerWidth < 1280);
+}
+
 function renderChips() {
   const tasks = allTasks();
-  const chip = (id, kids, label) => h('button', { class: 'chip', 'aria-pressed': String(filter === id), title: label, onclick: () => { filter = id; renderChips(); renderFeed(true); } }, ...kids);
+  const chip = (id, kids, label) => h('button', { class: 'chip', 'aria-pressed': String(filter === id), title: label, onclick: () => selectTask(id) }, ...kids);
   $('chips').replaceChildren(
     chip(null, [h('span', {}, T.all)], T.all),
     ...tasks.map((t) => chip(t.id, [dot(t.dot), h('span', { class: 'n' }, t.id), h('span', {}, t.title)], `${t.id} ${t.title}`)),
@@ -584,6 +671,7 @@ function quotedText(it, note) {
 function showPane(name) {
   $('app').classList.toggle('show-chat', name === 'chat');
   $('app').classList.toggle('show-group', name === 'group');
+  $('app').classList.toggle('show-side', name === 'side');
   document.querySelectorAll('[data-pane]').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.pane === name)));
   if (name === 'group') renderFeed(true);
 }

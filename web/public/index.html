@@ -48,9 +48,28 @@
 
 <div id="app" class="app show-chat" hidden>
   <nav class="switch seg" role="tablist">
+    <button role="tab" class="seg-item" data-pane="side" aria-selected="false"><svg><use href="#i-panel"/></svg><span data-i18n="inFlight"></span></button>
     <button role="tab" class="seg-item" data-pane="group" aria-selected="false"><svg><use href="#i-users"/></svg><span data-i18n="group"></span><span class="count" id="count-group"></span></button>
     <button role="tab" class="seg-item" data-pane="chat" aria-selected="true"><svg><use href="#i-chat"/></svg><span>Router</span></button>
   </nav>
+
+  <aside class="pane side" id="side" aria-labelledby="side-title">
+    <div class="side-head">
+      <span class="side-title" id="side-title" data-i18n="work"></span>
+      <button id="side-toggle" class="icon-btn" aria-controls="side" aria-expanded="true"><svg><use href="#i-panel"/></svg></button>
+    </div>
+    <div class="side-full">
+      <div class="seg side-tabs" role="tablist">
+        <button role="tab" class="seg-item" data-side-tab="tasks" aria-selected="true"><span data-i18n="inFlight"></span><span class="count" id="count-tasks"></span></button>
+        <button role="tab" class="seg-item" data-side-tab="runs" aria-selected="false"><span data-i18n="workers"></span><span class="count" id="count-runs"></span></button>
+      </div>
+      <div class="side-list">
+        <ul class="list" id="tasks" role="tabpanel"></ul>
+        <ul class="list" id="runs" role="tabpanel" hidden></ul>
+      </div>
+    </div>
+    <ul class="rail" id="rail"></ul>
+  </aside>
 
   <section class="pane group-pane" aria-labelledby="group-title">
     <header class="top">
