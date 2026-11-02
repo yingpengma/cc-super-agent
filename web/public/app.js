@@ -3,7 +3,6 @@
 // ---------- strings ----------
 const STRINGS = {
   en: {
-    brand: 'Super-agent',
     loginTitle: 'Sign in to your hub',
     loginHelp: 'On the server, run web/start.sh and open the address it prints. Or paste the token from .webui/token here.',
     loginLabel: 'Access token',
@@ -11,28 +10,29 @@ const STRINGS = {
     loginButton: 'Sign in',
     work: 'Work',
     close: 'Close',
+    chat: 'Chat',
+    terminal: 'Terminal',
     inputLabel: 'Message to the Router',
     inputPlaceholder: 'Tell the Router what you need…',
     send: 'Send',
-    hint: 'Enter sends, Shift+Enter adds a line. The terminal and this page share one conversation.',
+    hint: 'Enter to send · Shift+Enter for a new line · the terminal shares this conversation',
     inFlight: 'In flight',
     workers: 'Workers',
-    showTerminal: 'Show the Router terminal',
-    terminal: 'Router terminal',
     terminalNote: 'What the Router’s terminal shows right now. Use the keys below to answer a prompt.',
-    noTasks: 'Nothing in flight. New work appears here as soon as the Router takes it on.',
+    noTasks: 'Nothing in flight.\nNew work appears here once the Router takes it on.',
     noRuns: 'No Worker has run yet.',
     emptyTitle: 'Talk to one agent',
     emptyBody: 'Describe the work in your own words. The Router hands it to a Worker in the right project and tells you when there is a result or a decision for you.',
-    online: 'Router online',
-    working: 'Router is working',
-    asking: 'Router needs you',
-    down: 'Router is not running',
+    online: 'Online',
+    working: 'Working…',
+    asking: 'Waiting for your answer',
+    down: 'Not running',
     thinking: 'The Router is working on it…',
-    stepOne: 'The Router took 1 step',
-    steps: (n) => `The Router took ${n} steps`,
-    askTitle: 'The Router is waiting for your answer',
-    askBody: 'It is asking in its terminal, usually for permission to run something. The prompt is shown as it appears.',
+    stepOne: 'Took 1 step',
+    steps: (n) => `Took ${n} steps`,
+    askTitle: 'Permission required',
+    askBody: 'The Router is asking in its terminal.',
+    showPrompt: 'Show the prompt',
     downTitle: 'The Router is not running',
     downBody: 'Messages cannot be delivered until it starts.',
     startRouter: 'Start the Router',
@@ -46,12 +46,11 @@ const STRINGS = {
     lost: 'Connection lost. Reconnecting…',
     status: { open: 'In progress', waiting: 'Waiting for you', 'on hold': 'On hold', done: 'Done', dropped: 'Dropped' },
     run: { running: 'Running', queued: 'Queued', retrying: 'Retrying', paused: 'Paused', ok: 'Finished', failed: 'Failed' },
-    keys: { '1': 'Option 1', '2': 'Option 2', '3': 'Option 3', enter: 'Enter', esc: 'Esc', up: '↑', down: '↓' },
-    ago: { now: 'just now', m: (n) => `${n} min ago`, h: (n) => `${n} h ago`, d: (n) => `${n} d ago` },
-    pending: (n) => `${n} waiting`,
+    keys: { '1': '1', '2': '2', '3': '3', enter: 'Enter', esc: 'Esc', up: '↑', down: '↓' },
+    ago: { now: 'now', m: (n) => `${n}m`, h: (n) => `${n}h`, d: (n) => `${n}d` },
+    pending: (n) => `${n} queued`,
   },
   zh: {
-    brand: 'Super-agent',
     loginTitle: '登录你的 Super-agent',
     loginHelp: '在服务器上运行 web/start.sh，打开它打印出来的网址即可。也可以把 .webui/token 里的口令粘贴到这里。',
     loginLabel: '访问口令',
@@ -59,28 +58,29 @@ const STRINGS = {
     loginButton: '登录',
     work: '工作',
     close: '关闭',
+    chat: '聊天',
+    terminal: '终端',
     inputLabel: '发给 Router 的消息',
     inputPlaceholder: '告诉 Router 你要做什么…',
     send: '发送',
-    hint: 'Enter 发送，Shift+Enter 换行。终端和网页是同一个对话。',
+    hint: 'Enter 发送 · Shift+Enter 换行 · 终端和网页是同一个对话',
     inFlight: '进行中',
     workers: 'Worker',
-    showTerminal: '查看 Router 终端',
-    terminal: 'Router 终端',
     terminalNote: 'Router 终端此刻的画面。需要回答提示时，用下面的按键。',
-    noTasks: '现在没有进行中的工作。Router 接下新活后会出现在这里。',
+    noTasks: '现在没有进行中的工作。\nRouter 接下新活后会出现在这里。',
     noRuns: '还没有 Worker 运行过。',
     emptyTitle: '只跟一个助手说话',
     emptyBody: '用你自己的话描述要做的事。Router 会交给对应项目里的 Worker 去做，有结果或需要你决定时再告诉你。',
-    online: 'Router 在线',
-    working: 'Router 正在处理',
-    asking: 'Router 在等你',
-    down: 'Router 没在运行',
+    online: '在线',
+    working: '正在处理…',
+    asking: '在等你回答',
+    down: '没在运行',
     thinking: 'Router 正在处理…',
-    stepOne: 'Router 做了 1 步操作',
-    steps: (n) => `Router 做了 ${n} 步操作`,
-    askTitle: 'Router 在等你回答',
-    askBody: '它在终端里提问，通常是请你允许执行某个操作。下面是提示的原样内容。',
+    stepOne: '做了 1 步操作',
+    steps: (n) => `做了 ${n} 步操作`,
+    askTitle: '需要你的许可',
+    askBody: 'Router 在终端里提问。',
+    showPrompt: '查看原始提示',
     downTitle: 'Router 没在运行',
     downBody: '启动之前，消息发不出去。',
     startRouter: '启动 Router',
@@ -94,8 +94,8 @@ const STRINGS = {
     lost: '连接断开，正在重连…',
     status: { open: '进行中', waiting: '等你回复', 'on hold': '已叫停', done: '已完成', dropped: '已放弃' },
     run: { running: '运行中', queued: '排队中', retrying: '重试中', paused: '已暂停', ok: '已结束', failed: '失败' },
-    keys: { '1': '选项 1', '2': '选项 2', '3': '选项 3', enter: '回车', esc: 'Esc', up: '↑', down: '↓' },
-    ago: { now: '刚刚', m: (n) => `${n} 分钟前`, h: (n) => `${n} 小时前`, d: (n) => `${n} 天前` },
+    keys: { '1': '1', '2': '2', '3': '3', enter: '回车', esc: 'Esc', up: '↑', down: '↓' },
+    ago: { now: '刚刚', m: (n) => `${n}分钟`, h: (n) => `${n}小时`, d: (n) => `${n}天` },
     pending: (n) => `${n} 条待处理`,
   },
 };
@@ -104,6 +104,7 @@ const T = STRINGS[lang];
 document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
 document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = T[el.dataset.i18n]; });
 document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = T[el.dataset.i18nPlaceholder]; });
+document.querySelectorAll('[data-i18n-label]').forEach((el) => { el.setAttribute('aria-label', T[el.dataset.i18nLabel]); el.title = T[el.dataset.i18nLabel]; });
 
 // ---------- tiny helpers ----------
 const $ = (id) => document.getElementById(id);
@@ -118,6 +119,15 @@ function h(tag, attrs = {}, ...kids) {
   for (const k of kids.flat()) if (k !== null && k !== undefined && k !== false) el.append(k instanceof Node ? k : String(k));
   return el;
 }
+function icon(name) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', `#i-${name}`);
+  svg.append(use);
+  return svg;
+}
+const dot = (cls = '') => h('span', { class: `dot ${cls}` });
 function ago(iso) {
   const t = Date.parse(iso);
   if (!t) return '';
@@ -142,6 +152,7 @@ function inline(s) {
   s = s.replace(/`([^`\n]+)`/g, (_, c) => { codes.push(c); return `\u0000${codes.length - 1}\u0000`; });
   s = esc(s);
   s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, t, u) => `<a href="${u}" target="_blank" rel="noopener noreferrer">${t}</a>`);
+  s = s.replace(/\[([^\]]+)\]\((?!https?:)[^\s)]+\)/g, '$1');
   s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, (_, p, u) => `${p}<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`);
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/(^|[^*\w])\*([^*\n]+)\*(?!\w)/g, '$1<em>$2</em>');
@@ -233,7 +244,7 @@ $('login-form').addEventListener('submit', (e) => {
 const messages = $('messages');
 const scroller = $('chat-scroll');
 let lastSeq = 0;
-let group = null; // current activity group element
+let group = null; // current run of tool steps
 let pendingEls = [];
 
 function nearBottom() { return scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 120; }
@@ -242,52 +253,53 @@ function toBottom() { scroller.scrollTop = scroller.scrollHeight; }
 function renderItem(it) {
   if (it.role === 'tool') {
     if (!group) {
-      group = h('details', { class: 'activity' }, h('summary'), h('ol'));
+      group = h('details', { class: 'activity' }, h('summary', { class: 'line' }, dot(), h('span')), h('ol'));
       messages.append(group);
     }
-    group.querySelector('ol').append(h('li', {}, h('span', { class: 'tool' }, it.name), ' ', it.text));
+    group.querySelector('ol').append(h('li', {}, h('b', {}, it.name), h('span', { title: it.text }, it.text)));
     const n = group.querySelectorAll('li').length;
-    group.querySelector('summary').textContent = n === 1 ? T.stepOne : T.steps(n);
+    group.querySelector('summary span:last-child').textContent = n === 1 ? T.stepOne : T.steps(n);
     return;
   }
   group = null;
   if (it.role === 'user') {
     const i = pendingEls.findIndex((p) => p.dataset.text === it.text.trim());
     if (i >= 0) { pendingEls[i].remove(); pendingEls.splice(i, 1); }
-    messages.append(h('div', { class: 'msg user' }, it.text, h('time', { datetime: it.ts }, clock(it.ts))));
+    messages.append(h('div', { class: 'msg user' }, h('div', { class: 'bubble' }, it.text), h('time', { datetime: it.ts }, clock(it.ts))));
   } else if (it.role === 'assistant') {
-    const el = h('div', { class: 'msg assistant md' });
+    const el = h('div', { class: 'msg prose' });
     el.innerHTML = markdown(it.text);
     messages.append(el);
   } else if (it.role === 'event') {
     const bad = it.status && it.status !== 'completed';
-    messages.append(h('div', { class: 'event' }, h('span', { class: `lamp ${bad ? 'stop' : 'go'}` }), it.text));
+    messages.append(h('div', { class: 'line' }, dot(bad ? 'wait' : 'go'), h('span', {}, it.text)));
   }
+}
+
+function emptyState() {
+  return h('div', { class: 'empty' }, h('div', { class: 'badge' }, icon('chat')), h('h2', {}, T.emptyTitle), h('p', {}, T.emptyBody));
 }
 
 function addItems(items, { initial } = {}) {
   const stick = initial || nearBottom();
-  const empty = messages.querySelector('.empty');
   for (const it of items) {
     if (it.seq <= lastSeq) continue;
-    if (empty && empty.isConnected) empty.remove();
+    messages.querySelector('.empty')?.remove();
     renderItem(it);
     lastSeq = it.seq;
   }
+  if (!messages.querySelector('.msg, .line, .activity')) messages.replaceChildren(emptyState());
   placeThinking();
-  if (!messages.children.length) {
-    messages.append(h('div', { class: 'empty' }, h('strong', {}, T.emptyTitle), T.emptyBody));
-  }
   if (stick) toBottom();
 }
 
 let thinkingEl = null;
 let routerState = 'idle';
 function placeThinking() {
-  if (thinkingEl) thinkingEl.remove();
+  thinkingEl?.remove();
   thinkingEl = null;
   if (routerState === 'working') {
-    thinkingEl = h('div', { class: 'thinking' }, h('span', { class: 'lamp go pulse' }), T.thinking);
+    thinkingEl = h('div', { class: 'line' }, dot('go pulse'), h('span', {}, T.thinking));
     messages.append(thinkingEl);
   }
 }
@@ -295,7 +307,7 @@ function placeThinking() {
 // ---------- state rendering ----------
 let current = null;
 
-function taskLamp(t) {
+function taskDot(t) {
   if (t.warn) return 'stop';
   const s = (t.status || '').toLowerCase();
   if (s.startsWith('waiting')) return 'wait';
@@ -309,12 +321,29 @@ function taskStatusText(t) {
 }
 function runInfo(r) {
   const s = r.status;
-  if (s.startsWith('running')) return { lamp: 'go pulse', text: T.run.running, active: true };
-  if (s.startsWith('queued')) return { lamp: 'wait', text: T.run.queued, active: true };
-  if (s.startsWith('retrying')) return { lamp: 'wait pulse', text: T.run.retrying, active: true };
-  if (s.startsWith('paused')) return { lamp: '', text: T.run.paused, active: true };
-  if (s === 'exited 0') return { lamp: '', text: T.run.ok, active: false };
-  return { lamp: 'stop', text: T.run.failed, active: false };
+  if (s.startsWith('running')) return { dot: 'go pulse', text: T.run.running, active: true };
+  if (s.startsWith('queued')) return { dot: 'wait', text: T.run.queued, active: true };
+  if (s.startsWith('retrying')) return { dot: 'wait pulse', text: T.run.retrying, active: true };
+  if (s.startsWith('paused')) return { dot: '', text: T.run.paused, active: true };
+  if (s === 'exited 0') return { dot: '', text: T.run.ok, active: false };
+  return { dot: 'stop', text: T.run.failed, active: false };
+}
+
+// Buttons for a terminal prompt. Numbered options ("❯ 1. Yes") become buttons
+// labelled with their own text; without them, offer the generic keys.
+function promptButtons(screen) {
+  const opts = [];
+  for (const line of screen.split('\n')) {
+    const m = line.match(/^\s*(?:[❯>]\s*)?([1-9])\.\s+(.+?)\s*$/);
+    if (m && ['1', '2', '3'].includes(m[1]) && !opts.some((o) => o.key === m[1])) opts.push({ key: m[1], text: m[2] });
+  }
+  if (!opts.length) {
+    return ['esc', 'up', 'down', 'enter'].map((k) => h('button', { class: `btn${k === 'enter' ? ' primary' : ''}`, onclick: () => pressKey(k) }, T.keys[k]));
+  }
+  return [
+    h('button', { class: 'btn', onclick: () => pressKey('esc') }, T.keys.esc),
+    ...opts.slice().reverse().map((o) => h('button', { class: `btn${o.key === '1' ? ' primary' : ''}`, title: o.text, onclick: () => pressKey(o.key) }, h('span', {}, o.text))),
+  ];
 }
 
 function renderState(s) {
@@ -324,82 +353,103 @@ function renderState(s) {
 
   // header
   const label = { idle: T.online, working: T.working, asking: T.asking, down: T.down }[r.state];
-  const lamp = { idle: 'go', working: 'go pulse', asking: 'wait pulse', down: 'stop' }[r.state];
-  $('router-status').replaceChildren(h('span', { class: `lamp ${lamp}` }), h('span', { class: 'label' }, label));
+  const d = { idle: 'go', working: 'go pulse', asking: 'wait pulse', down: 'stop' }[r.state];
+  $('router-status').replaceChildren(dot(d), h('span', {}, label));
   $('send').disabled = r.state === 'down';
 
-  // banner
+  // card above the composer
   const banner = $('banner');
   if (r.state === 'down') {
-    banner.className = 'banner down';
+    banner.className = 'card down';
     banner.replaceChildren(
-      h('h3', {}, T.downTitle), h('p', {}, T.downBody),
-      h('div', { class: 'row' }, h('button', { class: 'primary', onclick: startRouter }, T.startRouter)),
+      h('p', { class: 'card-title' }, icon('power'), h('span', {}, h('strong', {}, T.downTitle), h('span', { class: 'sub' }, T.downBody))),
+      h('div', { class: 'actions' }, h('button', { class: 'btn primary', onclick: startRouter }, T.startRouter)),
     );
     banner.hidden = false;
   } else if (r.state === 'asking') {
-    banner.className = 'banner';
     const tail = r.screen.split('\n').slice(-16).join('\n');
-    banner.replaceChildren(h('h3', {}, T.askTitle), h('p', {}, T.askBody), h('pre', { class: 'screen' }, tail), keyRow(tail));
+    const wasOpen = banner.querySelector('details')?.open;
+    banner.className = 'card alerting';
+    banner.replaceChildren(
+      h('p', { class: 'card-title' }, icon('shield'), h('span', {}, h('strong', {}, T.askTitle), h('span', { class: 'sub' }, T.askBody))),
+      h('details', { open: wasOpen || undefined }, h('summary', {}, T.showPrompt), h('pre', { class: 'screen' }, tail)),
+      h('div', { class: 'actions' }, ...promptButtons(tail)),
+    );
     banner.hidden = false;
   } else {
     banner.hidden = true;
   }
 
+  // alerts
+  $('alerts').replaceChildren(...s.index.alerts.map((a) => h('p', { class: 'alert' }, icon('alert'), h('span', {}, a))));
+
   // tasks
-  const alerts = $('alerts');
-  alerts.replaceChildren(...s.index.alerts.map((a) => h('p', { class: 'alert' }, a)));
   const tasks = $('tasks');
+  $('count-tasks').textContent = s.index.tasks.length || '';
   if (!s.index.tasks.length) tasks.replaceChildren(h('li', {}, h('p', { class: 'none' }, T.noTasks)));
   else tasks.replaceChildren(...s.index.tasks.map((t) => h('li', {},
-    h('button', { onclick: () => openTask(t) },
-      h('span', { class: `lamp ${taskLamp(t)}` }),
-      h('span', { class: 't' }, h('span', { class: 'n' }, t.id), t.title),
-      h('span', { class: 'p' }, [t.project, taskStatusText(t)].filter(Boolean).join(' / ')),
-      t.note ? h('span', { class: `s${t.warn ? ' warn' : ''}` }, t.note) : null,
+    h('button', { class: 'row', onclick: () => openTask(t) },
+      h('div', {},
+        h('div', { class: 'name' }, dot(taskDot(t)), h('span', {}, t.title)),
+        h('div', { class: `sub${t.warn ? ' warn' : ''}` }, [t.id, t.project, t.note || taskStatusText(t)].filter(Boolean).join(' · ')),
+      ),
+      icon('chev'),
     ))));
 
   // runs
   const runs = s.runs.map((x) => ({ ...x, info: runInfo(x) }));
-  const shown = [...runs.filter((x) => x.info.active), ...runs.filter((x) => !x.info.active).slice(0, 5)];
+  const shown = [...runs.filter((x) => x.info.active), ...runs.filter((x) => !x.info.active).slice(0, 8)];
+  $('count-runs').textContent = runs.filter((x) => x.info.active).length || '';
   const runsEl = $('runs');
   if (!shown.length) runsEl.replaceChildren(h('li', {}, h('p', { class: 'none' }, T.noRuns)));
-  else runsEl.replaceChildren(...shown.map((x) => h('li', { class: x.info.active ? '' : 'past', title: x.project },
-    h('span', { class: `lamp ${x.info.lamp}` }),
-    h('span', { class: 'where' }, `${x.id} · ${x.project.split('/').pop() || x.project} · ${x.info.text}${x.pending ? ` · ${T.pending(x.pending)}` : ''}`),
-    h('span', { class: 'when' }, ago(x.info.active ? x.started : (x.ended || x.started))),
-  )));
+  else runsEl.replaceChildren(...shown.map((x) => h('li', { class: x.info.active ? '' : 'past' },
+    h('div', { class: 'row', title: x.project },
+      h('div', {},
+        h('div', { class: 'name' }, dot(x.info.dot), h('span', {}, x.project.split('/').pop() || x.project)),
+        h('div', { class: 'sub' }, [x.id, x.info.text, x.pending ? T.pending(x.pending) : ''].filter(Boolean).join(' · ')),
+      ),
+      h('span', { class: 'meta' }, ago(x.info.active ? x.started : (x.ended || x.started))),
+    ))));
 
   // pause
   const pa = $('pause-area');
   if (s.paused) {
     pa.replaceChildren(
       h('p', { class: 'pause-note' }, T.pausedSince(s.paused.replace(/^\S+\s*/, '') || s.paused)),
-      h('button', { class: 'ghost', onclick: resumeHub }, T.resume),
+      h('button', { class: 'foot-btn', onclick: resumeHub }, icon('play'), h('span', {}, T.resume)),
     );
   } else {
-    pa.replaceChildren(h('button', { class: 'ghost', onclick: pauseHub }, T.pause));
+    pa.replaceChildren(h('button', { class: 'foot-btn', onclick: pauseHub }, icon('pause'), h('span', {}, T.pause)));
   }
 
-  // terminal dialog, if open
-  if ($('term-dialog').open) $('term-screen').textContent = r.screen || '';
+  renderTerminal();
   placeThinking();
 }
 
-// Buttons for a terminal prompt. Numbered options ("❯ 1. Yes") become buttons
-// labelled with their own text; without them, offer the generic keys.
-function keyRow(screen) {
-  const opts = [];
-  for (const line of screen.split('\n')) {
-    const m = line.match(/^\s*(?:[❯>]\s*)?([1-9])\.\s+(.+?)\s*$/);
-    if (m && ['1', '2', '3'].includes(m[1]) && !opts.some((o) => o.key === m[1])) opts.push({ key: m[1], text: m[2] });
-  }
-  const buttons = opts.length
-    ? [...opts.map((o, i) => h('button', { class: i === 0 ? 'primary' : 'ghost', onclick: () => pressKey(o.key) }, o.text)),
-       h('button', { class: 'ghost', onclick: () => pressKey('esc') }, T.keys.esc)]
-    : ['enter', 'esc', 'up', 'down'].map((k) => h('button', { class: k === 'enter' ? 'primary' : 'ghost', onclick: () => pressKey(k) }, T.keys[k]));
-  return h('div', { class: 'row' }, ...buttons);
+// ---------- terminal view ----------
+function renderTerminal() {
+  if ($('view-term').hidden || !current) return;
+  const sc = $('term-screen');
+  const atEnd = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 40;
+  sc.textContent = current.router.screen || '';
+  if (atEnd) sc.scrollTop = sc.scrollHeight;
 }
+$('term-keys').replaceChildren(...['1', '2', '3', 'up', 'down', 'esc', 'enter'].map((k) =>
+  h('button', { class: `btn${k === 'enter' ? ' primary' : ''}`, onclick: () => pressKey(k) }, T.keys[k])));
+
+document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => {
+  const v = b.dataset.view;
+  document.querySelectorAll('[data-view]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+  $('view-chat').hidden = v !== 'chat';
+  $('view-term').hidden = v !== 'term';
+  if (v === 'term') { renderTerminal(); const sc = $('term-screen'); sc.scrollTop = sc.scrollHeight; }
+  else { toBottom(); input.focus(); }
+}));
+document.querySelectorAll('[data-side-tab]').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-side-tab]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+  $('tasks').hidden = b.dataset.sideTab !== 'tasks';
+  $('runs').hidden = b.dataset.sideTab !== 'runs';
+}));
 
 // ---------- actions ----------
 async function pressKey(key) {
@@ -432,18 +482,11 @@ async function openTask(t) {
     $('task-dialog-body').innerHTML = markdown(r.text.replace(/^# .*\n/, ''));
   } catch (e) { $('task-dialog-body').textContent = e.message; }
 }
-$('show-terminal').addEventListener('click', () => {
-  $('term-screen').textContent = (current && current.router.screen) || '';
-  $('term-keys').replaceChildren(...['1', '2', '3', 'up', 'down', 'enter', 'esc'].map((k) =>
-    h('button', { class: 'ghost', onclick: () => pressKey(k) }, T.keys[k])));
-  $('term-dialog').showModal();
-  const sc = $('term-screen'); sc.scrollTop = sc.scrollHeight;
-});
 document.querySelectorAll('dialog [data-close]').forEach((b) => b.addEventListener('click', () => b.closest('dialog').close()));
 
 // composer
 const input = $('input');
-function grow() { input.style.height = 'auto'; input.style.height = `${input.scrollHeight}px`; }
+function grow() { input.style.height = 'auto'; input.style.height = `${Math.max(input.scrollHeight, 52)}px`; }
 input.addEventListener('input', grow);
 input.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) {
@@ -454,8 +497,8 @@ input.addEventListener('keydown', (e) => {
 $('composer').addEventListener('submit', async (e) => {
   e.preventDefault();
   const text = input.value;
-  if (!text.trim()) return;
-  const el = h('div', { class: 'msg user pending', 'data-text': text.trim() }, text);
+  if (!text.trim() || $('send').disabled) return;
+  const el = h('div', { class: 'msg user pending', 'data-text': text.trim() }, h('div', { class: 'bubble' }, text));
   messages.querySelector('.empty')?.remove();
   messages.append(el);
   pendingEls.push(el);
@@ -466,18 +509,20 @@ $('composer').addEventListener('submit', async (e) => {
     el.remove(); pendingEls = pendingEls.filter((p) => p !== el);
     input.value = text; grow();
     const msg = err.data && err.data.error === 'router-down' ? T.sendFailed : T.sendError(err.message);
-    messages.append(h('div', { class: 'event' }, h('span', { class: 'lamp stop' }), msg));
+    messages.append(h('div', { class: 'line' }, dot('stop'), h('span', {}, msg)));
     toBottom();
   }
 });
 
-// side panel on narrow screens
+// sidebar drawer on narrow screens
 function setPanel(open) {
   $('side').classList.toggle('open', open);
+  $('scrim').hidden = !open;
   $('panel-toggle').setAttribute('aria-expanded', String(open));
 }
 $('panel-toggle').addEventListener('click', () => setPanel(!$('side').classList.contains('open')));
 $('panel-close').addEventListener('click', () => setPanel(false));
+$('scrim').addEventListener('click', () => setPanel(false));
 
 // ---------- live updates ----------
 async function refreshState() {
@@ -486,13 +531,13 @@ async function refreshState() {
 let source = null;
 let lostEl = null;
 function connect() {
-  if (source) source.close();
+  source?.close();
   source = new EventSource(`/api/events?t=${encodeURIComponent(token)}`);
   source.addEventListener('chat', (e) => addItems(JSON.parse(e.data).items));
   source.addEventListener('state', (e) => renderState(JSON.parse(e.data)));
   source.addEventListener('open', () => { lostEl?.remove(); lostEl = null; resync(); });
   source.addEventListener('error', () => {
-    if (!lostEl) { lostEl = h('div', { class: 'event' }, h('span', { class: 'lamp wait pulse' }), T.lost); messages.append(lostEl); }
+    if (!lostEl) { lostEl = h('div', { class: 'line' }, dot('wait pulse'), h('span', {}, T.lost)); messages.append(lostEl); }
   });
 }
 async function resync() {
@@ -512,6 +557,7 @@ async function start() {
     const c = await api('/api/chat');
     addItems(c.items, { initial: true });
     connect();
+    grow();
     input.focus();
   } catch (e) {
     if (e.message !== 'unauthorized') showLogin(false);
