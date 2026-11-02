@@ -36,11 +36,12 @@ cc-super-agent 是 DeepSeek 于 2026 年 10 月发布的 **Super-agent** 设计�
 ## 功能特性
 
 - 🧭 **一个 Router，多个 Worker。** Router 从不亲自干活，因此随时都能接收你的下一句话。每项任务在各自的项目中拥有专属的 Worker 会话，并加载该项目的 `CLAUDE.md` 和记忆。
-- 🗣️ **转达原话，而非摘要。** Worker 收到的是你的原话，并自己去阅读原始材料。Router 不会擅自添加任何方案。
+- 🗣️ **转达原话，而非摘要。** Worker 收到的是你的原话，并自己去阅读原始材料。Router 不会擅自添加任何方案。固定规矩通过系统提示交给每个 Worker，任务说明里只写这次新的内容。
 - 🔁 **后续补充送达同一个 Worker。** 每项任务都有固定的会话 ID，所以"顺便把按钮改成蓝色"会让已经掌握上下文的那个 Worker 继续工作。Worker 忙碌时收到的补充会进入队列，不会丢失。
 - 🐕 **独立于系统之外的 Watchdog。** 一个由 cron 驱动的独立进程，负责发现进程已死、长时间无动静、陷入循环、偏离方向，或者卡在无人回应的确认上的 Worker。它也同时看管 Router。
 - ♾️ **常驻在线。** 在服务器上，Router 由 systemd 托管在 tmux 中运行，任何一次重启后都会恢复自己原来的会话，并根据记录接续之前的工作。
 - 🧠 **看得懂的记忆。** 你的偏好存入 Claude Code 的记忆；你的工作存入一套三层的 Markdown wiki：一个索引、每项任务一个文件、每个项目一个文件。Router 顺着链接逐层读取，而不是一次性加载全部内容。
+- 🪞 **你的数字分身。** hub 会找出你和模型默认做法不一样的地方，也就是你纠正、拒绝或推翻 Agent 的每一处。和你一起审过之后，它们会写成一份关于你的判断和品味的模型：你不在时，Agent 能像你一样做决定，也知道哪些事必须留给你。见 [`twin/README.md`](twin/README.md)。
 - 🛑 **始终由你掌控。** 你说"先停一下"，即使 Worker 重启也依然有效，直到你亲自放行。`bin/pause` 可以一键停下所有工作。Worker 永远不会获得你没有授予的权限。
 - 🌐 **终端和浏览器都能用。** 可以在终端里跟 Router 对话，也可以打开网页界面：右边是你和 Router 的对话，左边是“工作群”，列出 Router 和所有 Worker 之间的每一条消息；哪条不对，点一下就能引用给 Router 处理。Router 请求权限时直接点按钮回答。两边是同一个对话。
 - 🔒 **默认保护隐私。** 仓库只跟踪白名单中的框架文件。你的任务、项目、日志和记忆都不会离开你的机器。
@@ -135,13 +136,14 @@ tmux -L ccsa attach -t ccsa-router     # 与它对话；按 Ctrl-b 再按 d 即�
 | [`AGENTS.md`](AGENTS.md) | Router 遵守的规则，由 `CLAUDE.md` 加载 |
 | [`templates/brief.md`](templates/brief.md) | 每份派给 Worker 的任务说明都从这个模板出发 |
 | [`templates/worker-rules.md`](templates/worker-rules.md) | `bin/dispatch` 加进每个 Worker 系统提示的固定规矩 |
+| [`twin/README.md`](twin/README.md) | 建立数字分身的方法 |
 | [`bin/dispatch`](bin/dispatch) | 启动或续接某项任务的 Worker，支持排队、并发上限和失败重试 |
 | [`bin/pause`](bin/pause)、[`bin/resume`](bin/resume) | 暂停、恢复所有自动处理 |
 | [`watchdog/`](watchdog) | Watchdog 的指令、运行脚本和定时任务安装脚本 |
 | [`router/`](router) | 让 Router 保持运行的脚本 |
 | [`web/`](web) | 网页界面：不依赖任何 npm 包的 Node 服务、页面，以及 systemd 安装脚本 |
 
-运行时生成、永不提交的内容：`INDEX.md`、`tasks/`、`projects/`、`.runs/`、`.watchdog/`、`.router/`、`.webui/`。
+运行时生成、永不提交的内容：`INDEX.md`、`tasks/`、`projects/`、`twin/` 里的数字分身本身（`README.md` 除外）、`.runs/`、`.watchdog/`、`.router/`、`.webui/`。
 
 ## 设计来源
 
@@ -177,6 +179,7 @@ cc-super-agent 是独立项目，与 DeepSeek 及 Anthropic 均无隶属关系�
 - [ ] 接入事件源，让 Router 不等你开口就能发现该做的工作
 - [ ] 支持在其他机器上运行 Worker
 - [ ] 为派发脚本和 Watchdog 脚本添加自动化测试
+- [ ] 用本机所有历史 Claude Code 会话记录来建数字分身，而不只是 hub 自己的记录
 
 欢迎提出想法和 issue。
 
@@ -195,7 +198,7 @@ cc-super-agent 是独立项目，与 DeepSeek 及 Anthropic 均无隶属关系�
 默认只在服务器本机监听，而且每个请求都要带口令。如果不想用 SSH 隧道，请放在 HTTPS 反向代理后面，并用 `--host 0.0.0.0` 启动。拿到口令的人就能跟你的 Router 对话，所以要像密码一样保管。
 
 **我的数据会被提交到仓库里吗？**
-不会。`.gitignore` 是一份框架文件的白名单，其余所有内容，包括你的任务、项目和日志，都只保存在本地。
+不会。`.gitignore` 是一份框架文件的白名单，其余所有内容，包括你的任务、项目、日志和数字分身，都只保存在本地。
 
 ## 卸载
 

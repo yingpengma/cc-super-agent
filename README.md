@@ -36,11 +36,12 @@ You keep **one** conversation. Behind it, a Router hands each piece of work to i
 ## Features
 
 - 🧭 **One Router, many Workers.** The Router never does the work itself, so it is always free to take your next message. Each task gets its own Worker session in its own project, loading that project's `CLAUDE.md` and memory.
-- 🗣️ **Your words, not a summary.** Workers receive your request verbatim and read the original material themselves. The Router adds no plans of its own.
+- 🗣️ **Your words, not a summary.** Workers receive your request verbatim and read the original material themselves. The Router adds no plans of its own. Standing rules reach every Worker through its system prompt, so a brief carries only what is new.
 - 🔁 **Follow-ups reach the same Worker.** Every task keeps a fixed session id, so "also make the button blue" resumes the Worker that already has the context. A follow-up sent while it is busy is queued, not lost.
 - 🐕 **A Watchdog outside the system.** A separate process, driven by cron, notices Workers that died, went silent, loop, drift off course, or wait on a prompt nobody answers. It watches the Router too.
 - ♾️ **Always on.** On a server, the Router lives in tmux under systemd, resumes its own session after any restart, and picks up from its records.
 - 🧠 **A memory you can read.** Your preferences go into Claude Code's memory. Your work goes into a three-layer Markdown wiki: an index, one file per task, one per project. The Router follows links one hop at a time instead of loading everything.
+- 🪞 **A digital twin of you.** The hub learns where you differ from what the model would do by default: every place you corrected, refused or overrode an agent. Reviewed with you, these become a written model of your judgment and taste, so an agent can decide as you would while you are away, and knows which calls stay yours. See [`twin/README.md`](twin/README.md).
 - 🛑 **You stay in control.** "Hold this" survives Worker restarts until you lift it. `bin/pause` stops everything at once. Workers never get permissions you did not grant.
 - 🌐 **In the terminal or in the browser.** Talk to the Router in its terminal, or open the Web UI: your chat with the Router on one side, and on the other a work group showing every message between the Router and its Workers, where you can flag any message as not right and send it back to the Router. Both are the same conversation.
 - 🔒 **Private by default.** The repository tracks a whitelist of framework files. Your tasks, projects, logs and memory never leave your machine.
@@ -135,13 +136,14 @@ Close any other Claude Code session in this directory before installing the Rout
 | [`AGENTS.md`](AGENTS.md) | The rules the Router follows. `CLAUDE.md` loads it |
 | [`templates/brief.md`](templates/brief.md) | The template every brief to a Worker starts from |
 | [`templates/worker-rules.md`](templates/worker-rules.md) | Standing rules that `bin/dispatch` adds to every Worker's system prompt |
+| [`twin/README.md`](twin/README.md) | The method for building your digital twin |
 | [`bin/dispatch`](bin/dispatch) | Starts or resumes a task's Worker, with queueing, a concurrency cap and retries |
 | [`bin/pause`](bin/pause), [`bin/resume`](bin/resume) | Pause and resume all automatic processing |
 | [`watchdog/`](watchdog) | The Watchdog's instructions, its runner and its cron installer |
 | [`router/`](router) | The scripts that keep the Router running |
 | [`web/`](web) | The Web UI: a dependency-free Node server, the page, and its systemd installer |
 
-Created at run time and never committed: `INDEX.md`, `tasks/`, `projects/`, `.runs/`, `.watchdog/`, `.router/`, `.webui/`.
+Created at run time and never committed: `INDEX.md`, `tasks/`, `projects/`, the twin itself in `twin/` (everything but its `README.md`), `.runs/`, `.watchdog/`, `.router/`, `.webui/`.
 
 ## Design
 
@@ -177,6 +179,7 @@ cc-super-agent is an independent project, not affiliated with DeepSeek or Anthro
 - [ ] Event sources, so the Router can notice work without being asked
 - [ ] Workers on other machines
 - [ ] Automated tests for the dispatch and Watchdog scripts
+- [ ] Build the twin from every past Claude Code transcript on the machine, not only the hub's own
 
 Ideas and issues are welcome.
 
@@ -195,7 +198,7 @@ It is designed not to. The Router speaks only for a result, a decision or a fail
 By default it listens only on the server, and every request needs the token. To reach it without an SSH tunnel, put it behind HTTPS (a reverse proxy) and start it with `--host 0.0.0.0`. Anyone with the token can talk to your Router, so keep it like a password.
 
 **Does my data end up in the repository?**
-No. `.gitignore` is a whitelist of framework files. Everything else, including your tasks, projects and logs, stays local.
+No. `.gitignore` is a whitelist of framework files. Everything else, including your tasks, projects, logs and your digital twin, stays local.
 
 ## Uninstall
 
