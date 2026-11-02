@@ -62,7 +62,7 @@ Every brief starts from `templates/brief.md`, which already carries rules 3 to 5
 The Router runs on a server that stays on, so it keeps working when the user disconnects:
 
 - **State lives on disk.** Memory, `INDEX.md`, task files and `.runs/` hold everything the Router needs. A Router that restarts reads `INDEX.md` and carries on.
-- **A fixed session.** The Router's session id is kept in `.router/session-id`, and every start resumes that session. `claude --continue` is not used, because the Watchdog's passes in this directory are often more recent.
+- **A fixed session.** The Router's session id is kept in `.router/session-id`, and every start resumes that session. `claude --continue` is not used, because any other session started in this directory would be picked up instead.
 - **Kept alive.** `router/loop.sh` runs the Router inside a tmux session named `ccsa-router` on its own tmux socket, and starts it again whenever it exits. `router/install.sh` installs a systemd service that creates the tmux session at boot and recreates it if it dies.
 - **Reached over SSH.** The user attaches with `tmux -L ccsa attach -t ccsa-router`, and detaches with `Ctrl-b d`, which leaves the Router running.
 
@@ -75,7 +75,7 @@ A Worker that finishes notifies the Router. A Worker that never finishes does no
 It follows the design's external control loop:
 
 - **Independent of the Router.** It is a separate `claude -p` process started by the system's cron, not by the Router. It keeps running when the Router session is closed, and can notice when the Router itself has stopped relaying results.
-- **Driven by a timer.** `watchdog/install.sh` installs a cron entry that runs `watchdog/run.sh` every 15 minutes. A pass is skipped without calling the model when no task is open and no Worker is running. Passes never overlap.
+- **Driven by a timer.** `watchdog/install.sh` installs a cron entry that runs `watchdog/run.sh` every 15 minutes. A pass is skipped without calling the model when no task is open and no Worker is running. Passes never overlap, and leave no session behind (`--no-session-persistence`), so they do not crowd the user's session list in this directory.
 - **Observes, diagnoses, reports.** Each pass reads the work records, the run state in `.runs/` and each Worker's session transcript, and judges whether the work is still progressing. Its instructions are in `watchdog/prompt.md`.
 - **Never intervenes.** It does not stop, restart, message or redirect a Worker. It records a finding in the task's log, marks the task's line in `INDEX.md` with ⚠, and sends the Router one short message if the Router is running. It does not repeat an alert that has not changed.
 

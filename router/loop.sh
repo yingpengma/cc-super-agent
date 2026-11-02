@@ -3,8 +3,8 @@
 # router/start.sh creates.
 #
 # The Router has a fixed session id, kept in .router/session-id, so a restart
-# resumes the same conversation. (`claude --continue` would not do: the
-# Watchdog's passes also run in this directory and are often more recent.)
+# resumes the same conversation. (`claude --continue` would not do: it picks
+# up whichever session in this directory ran last.)
 # When the Router exits for any reason, it is started again after 5 seconds.
 # To stop it for good, stop the service, or kill the tmux session.
 set -uo pipefail

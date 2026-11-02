@@ -37,7 +37,9 @@ fi
 if tmux -L ccsa has-session -t ccsa-router 2>/dev/null; then echo yes > .router/tmux-alive; else echo no > .router/tmux-alive; fi
 
 log=".watchdog/logs/$(date +%Y%m%d-%H%M%S).log"
-claude -p "$(cat watchdog/prompt.md)" --add-dir "$HOME/.claude/projects" \
+# --no-session-persistence: a pass leaves no session behind, so passes do not
+# fill the hub's session list (/resume) every 15 minutes.
+claude -p "$(cat watchdog/prompt.md)" --no-session-persistence --add-dir "$HOME/.claude/projects" \
   --allowedTools "Read" "Grep" "Glob" "Edit" "Write" \
     "Bash(ps:*)" "Bash(cat:*)" "Bash(tail:*)" "Bash(stat:*)" "Bash(date:*)" "Bash(ls:*)" \
     "ListAgents" "SendMessage" \
