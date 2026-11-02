@@ -239,3 +239,7 @@ svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width:
 @media (prefers-reduced-motion: reduce) { .side { transition: none; } }
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 .list .row > div { min-width: 0; }
+.list .group { font-size: 11.5px; font-weight: 500; color: var(--faint); padding: 10px 10px 4px; }
+.list .group:not(:first-child) { margin-top: 6px; }
+.dot.done { background: transparent; box-shadow: inset 0 0 0 1.5px var(--green); }
+.list .none { padding: 10px 10px 14px; text-align: left; }

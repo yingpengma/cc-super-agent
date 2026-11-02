@@ -16,7 +16,9 @@ const STRINGS = {
     inputPlaceholder: 'Tell the Router what you need…',
     send: 'Send',
     hint: 'Enter to send · Shift+Enter for a new line · the terminal shares this conversation',
-    inFlight: 'In flight',
+    inFlight: 'Tasks',
+    groupOpen: 'In flight',
+    groupEnded: 'Ended',
     workers: 'Workers',
     terminalNote: 'What the Router’s terminal shows right now. Use the keys below to answer a prompt.',
     noTasks: 'Nothing in flight.\nNew work appears here once the Router takes it on.',
@@ -64,7 +66,9 @@ const STRINGS = {
     inputPlaceholder: '告诉 Router 你要做什么…',
     send: '发送',
     hint: 'Enter 发送 · Shift+Enter 换行 · 终端和网页是同一个对话',
-    inFlight: '进行中',
+    inFlight: '任务',
+    groupOpen: '进行中',
+    groupEnded: '已结束',
     workers: 'Worker',
     terminalNote: 'Router 终端此刻的画面。需要回答提示时，用下面的按键。',
     noTasks: '现在没有进行中的工作。\nRouter 接下新活后会出现在这里。',
@@ -385,16 +389,29 @@ function renderState(s) {
 
   // tasks
   const tasks = $('tasks');
+  const past = s.past || [];
   $('count-tasks').textContent = s.index.tasks.length || '';
-  if (!s.index.tasks.length) tasks.replaceChildren(h('li', {}, h('p', { class: 'none' }, T.noTasks)));
-  else tasks.replaceChildren(...s.index.tasks.map((t) => h('li', {},
+  const openRows = s.index.tasks.map((t) => h('li', {},
     h('button', { class: 'row', onclick: () => openTask(t) },
       h('div', {},
         h('div', { class: 'name' }, dot(taskDot(t)), h('span', {}, t.title)),
         h('div', { class: `sub${t.warn ? ' warn' : ''}` }, [t.id, t.project, t.note || taskStatusText(t)].filter(Boolean).join(' · ')),
       ),
       icon('chev'),
-    ))));
+    )));
+  const pastRows = past.map((t) => h('li', { class: 'past' },
+    h('button', { class: 'row', title: t.outcome || '', onclick: () => openTask(t) },
+      h('div', {},
+        h('div', { class: 'name' }, dot(/^dropped/i.test(t.status) ? '' : 'done'), h('span', {}, t.title)),
+        h('div', { class: 'sub' }, [t.id, t.project, taskStatusText(t)].filter(Boolean).join(' · ')),
+      ),
+      h('span', { class: 'meta' }, ago(t.updated)),
+    )));
+  tasks.replaceChildren(
+    h('li', { class: 'group' }, T.groupOpen),
+    ...(openRows.length ? openRows : [h('li', {}, h('p', { class: 'none' }, T.noTasks))]),
+    ...(pastRows.length ? [h('li', { class: 'group' }, T.groupEnded), ...pastRows] : []),
+  );
 
   // runs
   const runs = s.runs.map((x) => ({ ...x, info: runInfo(x) }));

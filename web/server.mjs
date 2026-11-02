@@ -202,13 +202,41 @@ function runs() {
   }).filter((r) => r.status).sort((a, b) => (b.started || '').localeCompare(a.started || ''));
 }
 
+// Every task file not listed in INDEX.md: work that has ended. INDEX.md only
+// lists open work, so without this the page would hide everything finished.
+function pastTasks(openFiles) {
+  let names = [];
+  try { names = fs.readdirSync(rel('tasks')).filter((n) => /^[\w.-]+\.md$/.test(n)); } catch { return []; }
+  return names.map((n) => {
+    const file = `tasks/${n}`;
+    if (openFiles.has(file)) return null;
+    const t = read(rel(file)) || '';
+    const head = (t.match(/^#\s+(.+)$/m) || [])[1] || n.replace(/\.md$/, '');
+    const idm = head.match(/^(\d+)\s+(.*)$/);
+    const field = (k) => ((t.match(new RegExp(`^- ${k}:\\s*(.+)$`, 'm')) || [])[1] || '').trim();
+    const proj = field('Project');
+    const outcome = ((t.split(/^## Outcome\s*$/m)[1] || '').trim().split('\n')[0] || '').slice(0, 200);
+    // When it ended: the last dated line of its log, else the file's mtime.
+    const dates = [...(t.split(/^## Log\s*$/m)[1] || '').matchAll(/^- (\d{4}-\d{2}-\d{2}(?:[T ][\d:]+)?)/gm)].map((m) => m[1]);
+    let mtime = dates.length ? dates[dates.length - 1] : '';
+    if (!mtime) { try { mtime = fs.statSync(rel(file)).mtime.toISOString(); } catch {} }
+    return {
+      id: idm ? idm[1] : head, title: idm ? idm[2] : head, file,
+      project: (proj.match(/\[([^\]]+)\]/) || [])[1] || proj,
+      status: field('Status'), outcome, updated: mtime,
+    };
+  }).filter(Boolean).sort((a, b) => b.id.localeCompare(a.id, undefined, { numeric: true }));
+}
+
 async function state() {
   const paused = read(rel('.paused'));
+  const index = parseIndex();
   return {
     hub: path.basename(hub),
     router: await routerPane(),
     paused: paused ? paused.trim() : null,
-    index: parseIndex(),
+    index,
+    past: pastTasks(new Set(index.tasks.map((t) => t.file))),
     runs: runs(),
   };
 }
