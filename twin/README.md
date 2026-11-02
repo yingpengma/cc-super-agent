@@ -8,6 +8,8 @@ This file is the method. It is framework and holds nothing about a particular us
 
 Only where the user differs from what a capable model would do by default. Anything the model already gets right needs no entry: writing it down adds nothing and costs attention.
 
+An entry must change what the twin would do. Evidence that changes no decision is not recorded. When the user keeps a whole area for themselves, such as "never delete anything; I decide", that is recorded once as an "ask the user" point, and every later candidate in that area is skipped without review.
+
 ## Sources
 
 - The user's own messages in every Claude Code transcript on the machine (`~/.claude/projects/*/*.jsonl`), each read together with the agent turn it answers.
@@ -28,6 +30,7 @@ Only where the user differs from what a capable model would do by default. Anyth
 | Private knowledge | Depends on something only the user knows, such as whether a project is still needed | An "ask the user" point: when to ask, what to ask, and what to prepare so the user can answer at a glance |
 | Human limit | An adaptation to the user's own limits: attention, reading speed, time | A rule for agents talking to the human. The twin is not bound by it when it decides on its own; it can weigh everything at once |
 | Already covered | An existing rule already says it | Where it is covered. Nothing new |
+| Passing purpose | The request served a goal of that moment, not a lasting preference, such as keeping records because they are material for the twin | Nothing |
 
 The human-limit test matters: a request such as "show me one item at a time" says how the user can take in information, not how the decision should be made. Copying it into the twin would make the twin as slow as the human without any benefit.
 
@@ -35,7 +38,7 @@ The human-limit test matters: a request such as "show me one item at a time" say
 
 - the user's words, verbatim, with date and source transcript;
 - what the agent proposed or did that the user overrode;
-- counter-evidence, if any;
+- counter-evidence, only if it changes what the twin would do;
 - confidence: one event is a hypothesis; a pattern across events is a rule.
 
 Write the reasoning behind a rule, not only its surface. "Kept folder X" is an event; "keeps what might still be needed, and deletes wholesale what is known to be obsolete, whether or not it can be recovered" is a rule.
